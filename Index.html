@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#17121f; --surface:#221a2d; --surface2:#2c2239; --line:#3d3150;
+  --fg:#f4ede2; --muted:#ab9fb8; --amber:#f2a93b; --amber-ink:#2a1a05;
+  --red:#ff6b5e; --green:#6fd39b; --blue:#8cb8ff;
+  --display:"Mitr","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg);margin:0}
+body{font-family:var(--body);font-size:16px;line-height:1.55;padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:560px;margin:0 auto;padding:20px 0 48px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:600;font-size:28px;margin:0}
+h1 span{color:var(--amber)}
+h2{font-family:var(--display);font-weight:500;font-size:19px;margin:0}
+h3{font-family:var(--display);font-weight:500;font-size:16px;margin:0}
+p{margin:0}
+.muted{color:var(--muted)} .small{font-size:14px} .center{text-align:center}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+label{font-size:14px;color:var(--muted)}
+input[type=text],select{font:500 16px var(--body);color:var(--fg);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.code-in{font:600 26px var(--display)!important;letter-spacing:6px;text-align:center;text-transform:uppercase}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.btn{font:500 16px var(--display);border-radius:12px;padding:11px 16px;cursor:pointer;background:var(--surface2);color:var(--fg);border:1px solid var(--line)}
+.btn.primary{background:var(--amber);color:var(--amber-ink);border-color:var(--amber)}
+.btn.danger{background:var(--red);color:#2b0805;border-color:var(--red)}
+.btn.sm{font-size:13px;padding:5px 10px;border-radius:8px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>*{flex:1 1 auto}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:42px;height:42px;border-radius:12px;font:600 20px var(--display);background:var(--surface2);color:var(--fg);border:1px solid var(--line);cursor:pointer}
+.stepper button:disabled{opacity:.4}
+.stepper output{font:600 22px var(--display);min-width:2ch;text-align:center}
+.seg{display:flex;background:var(--surface2);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;font:500 14px var(--body);background:none;border:0;color:var(--muted);padding:8px 4px;border-radius:8px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--line);color:var(--fg)}
+.seg button:disabled{opacity:.4}
+.check{display:flex;gap:8px;align-items:center;font-size:15px;color:var(--fg)}
+.check input{width:20px;height:20px;accent-color:var(--amber)}
+.roomcode{font:600 40px var(--display);letter-spacing:8px;color:var(--amber);text-align:center;line-height:1.1}
+.plist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.plist li{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.plist .seatno{font:600 15px var(--display);width:28px;height:28px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;flex:none}
+.plist .nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.plist .nm b{font-weight:600;overflow-wrap:anywhere}
+.plist .nm span{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.plist li.out{opacity:.55}
+.plist li.out b{text-decoration:line-through}
+.plist li.start{border-color:var(--green)}
+.plist li.mine{border-color:var(--amber)}
+.tagr{font:500 12px var(--body);padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);flex:none;white-space:nowrap}
+.tagr.spy{border-color:var(--red);color:var(--red)} .tagr.white{border-color:var(--blue);color:var(--blue)} .tagr.civ{border-color:var(--green);color:var(--green)}
+.tagr.ok{border-color:var(--amber);color:var(--amber)}
+.votes{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.vbtn{font:500 15px var(--body);background:var(--surface2);color:var(--fg);border:2px solid var(--line);border-radius:12px;padding:10px 8px;cursor:pointer;text-align:left;overflow-wrap:anywhere}
+.vbtn.skip{border-style:dashed;color:var(--muted)}
+.vbtn small{display:block;color:var(--muted);font-size:12px}
+.vbtn[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--amber-ink)}
+.vbtn[aria-pressed="true"] small{color:var(--amber-ink)}
+.coaster{width:min(280px,80vw);aspect-ratio:1;margin:4px auto;border-radius:50%;background:radial-gradient(circle at 50% 45%,#3a2a19 0%,#2a1d12 70%);border:3px solid var(--amber);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;cursor:pointer;user-select:none;color:var(--fg);font:inherit;padding:24px}
+.coaster::before{content:"";position:absolute;inset:12px;border-radius:50%;border:2px dashed rgba(242,169,59,.45);pointer-events:none}
+.coaster .word{font:600 clamp(26px,8.5vw,38px) var(--display);color:var(--amber);line-height:1.15;overflow-wrap:anywhere}
+.coaster .hint{font-size:14px;color:var(--muted)}
+.coaster .role{font:500 16px var(--body);color:var(--fg);background:rgba(0,0,0,.25);border-radius:999px;padding:3px 12px}
+.coaster .sn{font:500 13px var(--display);letter-spacing:1.5px;color:var(--muted)}
+.result{border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);background:var(--surface2)}
+.result.spy{border-color:var(--red)} .result.civ{border-color:var(--green)} .result.white{border-color:var(--blue)}
+.result.win{border-color:var(--amber);background:#33240f}
+.result .t{font:600 18px var(--display)}
+.drink{color:var(--amber);font-weight:600}
+.err{color:var(--red);font-size:14px}
+.modal{position:fixed;inset:0;background:rgba(10,6,16,.72);display:flex;align-items:center;justify-content:center;z-index:30;padding:20px}
+.modal .box{background:var(--surface);border:3px solid var(--line);border-radius:22px;padding:24px 20px;max-width:400px;width:100%;display:flex;flex-direction:column;gap:10px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal .box.good{border-color:var(--green)} .modal .box.bad{border-color:var(--red)} .modal .box.white{border-color:var(--blue)} .modal .box.win{border-color:var(--amber)}
+.modal .big{font:600 26px var(--display);line-height:1.25}
+.modal .good .big{color:var(--green)} .modal .bad .big{color:var(--red)} .modal .white .big{color:var(--blue)} .modal .win .big{color:var(--amber)}
+.modal .me{font:600 17px var(--display);padding:6px 12px;border-radius:999px;background:var(--surface2);align-self:center}
+@media (prefers-reduced-motion:no-preference){.modal .box{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}}
+.timer{display:flex;align-items:center;gap:14px;background:var(--surface2);border:1px solid var(--amber);border-radius:14px;padding:12px 14px}
+.timer .sec{font:600 38px var(--display);color:var(--amber);min-width:2.2ch;text-align:center;font-variant-numeric:tabular-nums;line-height:1}
+.timer.low .sec{color:var(--red)}
+.hist{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.hist .rd{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.hist .rd ul{padding-left:18px;gap:2px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:14px;z-index:20;max-width:90vw}
+.toast.bad{border-color:var(--red);color:var(--red)}
+ol,ul{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+details summary{cursor:pointer;font:500 16px var(--display)}
+.foot{font-size:13px;color:var(--muted);text-align:center}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;vertical-align:middle}
+.live.off{background:var(--red)}
+.linkbox{font-size:13px;word-break:break-all;background:var(--surface2);border:1px dashed var(--line);border-radius:10px;padding:8px 10px;user-select:all}
+</style>
+</head>
+<body>
+<div id="app" class="wrap"></div>
+<script>
+(function(){
+"use strict";
+/* ---------- helpers ---------- */
+const LS={
+  get(k,d){try{const v=localStorage.getItem("spyon:"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{v==null?localStorage.removeItem("spyon:"+k):localStorage.setItem("spyon:"+k,JSON.stringify(v))}catch(e){}}
+};
+/* ===== ตั้งค่าตอนฝากเว็บบน GitHub Pages =====
+   วางลิงก์เว็บแอป Apps Script ที่ลงท้ายด้วย /exec ไว้ในเครื่องหมายคำพูดด้านล่าง
+   (ถ้าเปิดผ่านลิงก์ Apps Script โดยตรง ไม่ต้องแก้อะไร) */
+const API_URL = "";
+const IN_GAS = !!(window.google&&google.script&&google.script.run);
+function apiUrl(){return API_URL||LS.get("api","")}
+if(!IN_GAS){
+  document.title="ใครคือสายลับ";
+  if(!document.querySelector('meta[name=viewport]')){const m=document.createElement("meta");m.name="viewport";m.content="width=device-width, initial-scale=1, viewport-fit=cover";document.head.append(m)}
+}
+function call(action,p){
+  if(!IN_GAS){
+    const u=apiUrl();
+    if(!u) return Promise.reject(new Error("ยังไม่ได้ตั้งลิงก์ Apps Script"));
+    // ส่งเป็น text/plain เพื่อไม่ให้เบราว์เซอร์ติด CORS preflight
+    return fetch(u,{method:"POST",body:JSON.stringify({action,p:p||{}})})
+      .then(r=>r.text())
+      .then(s=>{let o;try{o=JSON.parse(s)}catch(e){throw new Error("ต่อ Apps Script ไม่ได้ เช็กว่าลิงก์ลงท้าย /exec และตั้งผู้มีสิทธิ์เข้าถึงเป็น \"ทุกคน\"")}if(!o.ok)throw new Error(o.err);return o.data})
+      .catch(e=>{throw e instanceof Error?e:new Error(String(e))});
+  }
+  return new Promise((res,rej)=>{
+    google.script.run
+      .withSuccessHandler(s=>{let o;try{o=JSON.parse(s)}catch(e){return rej(new Error("เซิร์ฟเวอร์ตอบกลับผิดรูปแบบ"))}o.ok?res(o.data):rej(new Error(o.err))})
+      .withFailureHandler(e=>rej(new Error((e&&e.message)||String(e))))
+      .api(action,p||{});
+  });
+}
+const el=(tag,attrs,...kids)=>{const e=document.createElement(tag);if(attrs)for(const k in attrs){const v=attrs[k];if(v==null||v===false)continue;if(k==="class")e.className=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(k==="value")e.value=v;else if(v===true)e.setAttribute(k,"");else e.setAttribute(k,v)}for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)))}return e};
+const ROLE={civ:"พลเมือง",spy:"สายลับ",white:"Mr. White"};
+
+/* ---------- state ---------- */
+const S={
+  sess:LS.get("sess",null),            // {code,token,hostToken}
+  room:null, cfg:null, online:true, busy:false, toast:null,
+  joinCode:"", joinName:LS.get("name",""), hostPlays:true,
+  set:null, shown:false, shownGame:0, hintDraft:"", guessDraft:"", confirmAbort:false, manualPick:null,
+  skew:0, popup:null, seenKey:null, opened:{}, autoSent:null
+};
+function saveSess(){LS.set("sess",S.sess)}
+function toast(msg,bad){S.toast={msg,bad};render();clearTimeout(toast.t);toast.t=setTimeout(()=>{S.toast=null;render()},bad?4500:2500)}
+function prole(id){const p=S.room&&S.room.players.find(x=>x.id===id);return p&&p.prole}
+function pName(id){const p=S.room&&S.room.players.find(x=>x.id===id);return p?p.name:"?"}
+/* details ที่จำสถานะเปิด/ปิดไว้ ไม่หุบเองตอนหน้าจออัปเดต */
+function shareUrl(){return IN_GAS?(S.cfg&&S.cfg.url)||"":location.origin+location.pathname}
+function setupView(){
+  return el("div",{class:"panel"},
+    el("h2",null,"ตั้งค่าครั้งแรก"),
+    el("p",{class:"small"},"วางลิงก์เว็บแอป Apps Script (ลงท้ายด้วย /exec) เพื่อเชื่อมเกมกับ Google Sheet"),
+    el("input",{type:"text",id:"apiin",placeholder:"https://script.google.com/macros/s/…/exec",value:S.apiDraft||"",oninput:e=>{S.apiDraft=e.target.value}}),
+    el("button",{class:"btn primary",onclick:async()=>{const u=(S.apiDraft||"").trim();if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(u))return toast("ลิงก์ต้องขึ้นต้น https://script.google.com/ และลงท้ายด้วย /exec",true);LS.set("api",u);try{S.cfg=await call("config");toast("เชื่อมต่อสำเร็จ")}catch(e){LS.set("api",null);toast(e.message,true)}render()}},"บันทึกและทดสอบ"),
+    el("p",{class:"small muted"},"แนะนำให้เจ้าของเว็บใส่ลิงก์นี้ใน API_URL ในไฟล์ index.html แทน เพื่อนจะได้ไม่ต้องกรอกเอง"));
+}
+function det(key,attrs,summary,...kids){
+  return el("details",Object.assign({},attrs,{open:!!S.opened[key],ontoggle:e=>{S.opened[key]=e.target.open}}),summary,...kids);
+}
+function now(){return Date.now()+S.skew}
+function hintLeft(){const g=S.room&&S.room.game;if(!g||!g.hintOpen)return 0;const l=Math.max(0,Math.ceil((g.hintEnds-now())/1000));return g.hintSec?Math.min(g.hintSec,l):l}
+
+/* ---------- ป๊อปอัพผลโหวต ---------- */
+function eventKey(v){
+  const g=v.game;if(!g) return "none";
+  return [g.no,g.last?g.last.round+"-"+(g.last.id||"skip"):"",g.white&&g.white.ok!=null?"w"+g.white.ok:"",v.phase==="over"?"over":""].join(":");
+}
+function buildPopup(v,prevKey){
+  const g=v.game,me=v.me,L=g.last;if(!g) return null;
+  const pk=(prevKey||"").split(":"),nk=eventKey(v).split(":");
+  const sameGame=pk[0]===nk[0];
+  const items=[];let cls="";
+  const newLast=L&&(!sameGame||pk[1]!==nk[1]);
+  if(newLast){
+    if(L.skipped){cls="";items.push(el("div",{class:"big"},"ไม่มีใครถูกโหวตออก"),el("p",{class:"small muted"},"คนกดข้ามเยอะกว่าคะแนนโหวต ไปรอบต่อไป"))}
+    else{
+      const voted=me&&(L.voters||[]).includes(me.name);
+      const isMe=me&&me.id===L.id;
+      if(L.role==="civ"){cls="bad";items.push(el("div",{class:"big"},"โหวตผิด!"),el("p",null,`${L.name} เป็นพลเมือง`),L.msg?el("p",{class:"drink"},L.msg):null)}
+      else if(L.role==="spy"){cls="good";items.push(el("div",{class:"big"},"จับสายลับได้!"),el("p",null,`${L.name} คือสายลับ`),L.msg?el("p",{class:"drink"},L.msg):null)}
+      else {cls="white";items.push(el("div",{class:"big"},"เจอ Mr. White!"),el("p",null,`${L.name} คือ Mr. White ให้ทาย${g.mode==="place"?"สถานที่":"คำ"}ของพลเมือง 1 ครั้ง`))}
+      if(isMe) items.push(el("span",{class:"me"},"คุณโดนโหวตออก"));
+      else if(voted) items.push(el("span",{class:"me",style:L.role==="civ"?"color:var(--red)":"color:var(--green)"},L.role==="civ"?"คุณโหวตผิดคน":"คุณโหวตถูก!"));
+    }
+  }
+  if(g.white&&g.white.ok!=null&&(!sameGame||pk[2]!==nk[2])&&g.white.ok===false){
+    cls=cls||"white";items.push(el("div",{class:"big",style:"font-size:20px"},`Mr. White ทายผิด`),el("p",null,`ทายว่า “${g.white.guess}”`),el("p",{class:"drink"},g.white.msg||""));
+  }
+  if(v.phase==="over"&&(!sameGame||pk[3]!=="over")){
+    const w=g.winner,myRole=me&&(v.players.find(p=>p.id===me.id)||{}).role;
+    const title=w==="civ"?"พลเมืองชนะ!":w==="spy"?"ฝ่ายสายลับชนะ!":w==="white"?"Mr. White ทายถูก ชนะทันที!":"จบตานี้แล้ว";
+    cls="win";
+    if(items.length) items.push(el("hr",{style:"border:0;border-top:1px solid var(--line);width:100%"}));
+    items.push(el("div",{class:"big"},title));
+    if(g.winMsg) items.push(el("p",{class:"drink"},g.winMsg));
+    if(g.reveal) items.push(el("p",{class:"small"},`${g.mode==="place"?"สถานที่":"คำ"}พลเมือง: ${g.reveal.civ} · สายลับ: ${g.reveal.spy}`));
+    if(myRole&&w&&w!=="none"){const won=myRole==="civ"?w==="civ":(w==="spy"||w==="white");items.push(el("span",{class:"me",style:won?"color:var(--green)":"color:var(--red)"},won?"ฝ่ายคุณชนะ!":"ฝ่ายคุณแพ้"))}
+  }
+  return items.length?{cls,items}:null;
+}
+
+async function act(action,extra,okMsg){
+  if(S.busy) return;
+  S.busy=true;render();
+  try{
+    const d=await call(action,Object.assign({code:S.sess&&S.sess.code,token:S.sess&&S.sess.token,hostToken:S.sess&&S.sess.hostToken},extra||{}));
+    if(d&&d.token&&S.sess) {S.sess.token=d.token;saveSess()}
+    if(d&&d.view) applyView(d.view);
+    if(okMsg) toast(okMsg);
+    return d;
+  }catch(e){toast(e.message,true)}
+  finally{S.busy=false;render()}
+}
+function applyView(v){
+  if(v.serverNow) S.skew=v.serverNow-Date.now();
+  const k=eventKey(v);
+  if(S.seenKey===null) S.seenKey=k;
+  else if(k!==S.seenKey){const p=buildPopup(v,S.seenKey);S.seenKey=k;if(p)S.popup=p}
+  const rk=v.game?v.gameNo+":"+v.game.round:"";
+  if(rk!==S.roundKey){S.roundKey=rk;S.hintDraft="";S.autoSent=null}
+  S.room=v;
+  if(v.gameNo!==S.shownGame){S.shownGame=v.gameNo;S.hintDraft="";S.guessDraft="";S.manualPick=null;S.confirmAbort=false}
+  if(v.isHost&&!S.set) S.set=Object.assign({},v.settings);
+}
+
+/* ---------- กดแล้วเปลี่ยนทันที (ไม่ต้องรอเซิร์ฟเวอร์) ---------- */
+let pending=0, chain=Promise.resolve(), lastLocal=0;
+function fast(action,extra,apply){
+  if(!S.room) return;
+  try{apply(S.room)}catch(e){}
+  lastLocal=Date.now();
+  render();
+  pending++;
+  chain=chain
+    .then(()=>call(action,Object.assign({code:S.sess.code,token:S.sess.token,hostToken:S.sess.hostToken},extra)))
+    .then(d=>{pending--;if(!pending&&d&&d.view){applyView(d.view);render()}})
+    .catch(e=>{pending--;toast(e.message,true);S.force=true;poll()});
+}
+function voteFor(t){
+  fast("vote",{target:t},room=>{
+    const g=room.game,id=room.me.id;g.myVote=t;
+    const v=new Set(g.voted);t?v.add(id):v.delete(id);g.voted=[...v];
+  });
+}
+
+/* ---------- polling ---------- */
+let polling=false;
+async function poll(){
+  if(polling||!S.sess||!S.sess.code) return;
+  polling=true;
+  const started=Date.now();
+  try{
+    const d=await call("state",{code:S.sess.code,token:S.sess.token,hostToken:S.sess.hostToken,vkey:S.force?null:S.room&&S.room.vkey});S.force=false;
+    S.online=true;
+    // ถ้ามีการกดค้างส่งอยู่ หรือเพิ่งกดหลังเริ่มถาม ข้ามผลรอบนี้ไป กันปุ่มเด้งกลับ
+    if(pending||lastLocal>started){}
+    else if(!d.same){applyView(d.view);render()}
+    else if(!S.onlineShown){render()}
+    S.onlineShown=true;
+  }catch(e){
+    if(/ไม่พบห้อง/.test(e.message)){S.sess=null;S.room=null;saveSess();toast(e.message,true)}
+    else {S.online=false;S.onlineShown=false;render()}
+  }finally{polling=false}
+}
+function loop(){
+  poll();
+  const ph=S.room&&S.room.phase;
+  setTimeout(loop,document.hidden?6000:(ph==="play"||ph==="white")?1200:2500);
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){S.force=true;poll()}});
+
+/* ---------- render ---------- */
+const app=document.getElementById("app");
+function render(){
+  const a=document.activeElement, id=a&&a.id, caret=id&&a.selectionStart;
+  app.replaceChildren(...[
+    el("header",null,el("h1",null,"ใครคือ",el("span",null,"สายลับ")),
+      el("span",{class:"small muted"},S.sess?[el("span",{class:"live"+(S.online?"":" off")}),S.online?"ออนไลน์":"กำลังเชื่อมต่อใหม่…"]:"เล่นออนไลน์ 3–20 คน")),
+    !IN_GAS&&!apiUrl()?setupView():S.sess&&S.room?roomView():S.sess?el("div",{class:"panel"},el("p",{class:"muted"},"กำลังเข้าห้อง…")):homeView(),
+    el("p",{class:"foot"},"ดื่มแต่พอดี เมาแล้วไม่ขับ"),
+    S.toast?el("div",{class:"toast"+(S.toast.bad?" bad":""),role:"status"},S.toast.msg):null,
+    S.popup?el("div",{class:"modal",role:"dialog","aria-modal":"true",onclick:e=>{if(e.target.classList.contains("modal")){S.popup=null;render()}}},
+      el("div",{class:"box "+S.popup.cls},S.popup.items,el("button",{class:"btn primary",id:"popok",style:"margin-top:6px",onclick:()=>{S.popup=null;render()}},"ตกลง"))):null
+  ].filter(Boolean));
+  if(id){const f=document.getElementById(id);if(f){f.focus();try{if(caret!=null)f.setSelectionRange(caret,caret)}catch(e){}}}
+}
+
+/* ---------- home ---------- */
+function homeView(){
+  return el("section",{class:"wrap",style:"padding:0"},
+    el("div",{class:"panel"},
+      el("h2",null,"เข้าร่วมห้อง"),
+      el("div",{class:"field"},el("label",{for:"jc"},"รหัสห้อง (ขอจากผู้คุมเกม)"),
+        el("input",{type:"text",id:"jc",class:"code-in",maxlength:"5",autocomplete:"off",spellcheck:"false",value:S.joinCode,placeholder:"-----",oninput:e=>{S.joinCode=e.target.value.toUpperCase()}})),
+      el("div",{class:"field"},el("label",{for:"jn"},"ชื่อของคุณ"),
+        el("input",{type:"text",id:"jn",maxlength:"20",autocomplete:"off",value:S.joinName,placeholder:"เช่น ต้น",oninput:e=>{S.joinName=e.target.value}})),
+      el("button",{class:"btn primary",disabled:S.busy,onclick:join},S.busy?"กำลังเข้า…":"เข้าห้อง")
+    ),
+    el("div",{class:"panel"},
+      el("h2",null,"สร้างห้องใหม่ (ผู้คุมเกม)"),
+      el("label",{class:"check"},el("input",{type:"checkbox",checked:S.hostPlays,onchange:e=>{S.hostPlays=e.target.checked;render()}}),"ผู้คุมเกมร่วมเล่นด้วย"),
+      S.hostPlays?el("p",{class:"muted small"},"ใช้ชื่อจากช่องด้านบน ผู้คุมเกมจะไม่เห็นคำของใครเลยจนกว่าจะเฉลย จึงเล่นด้วยได้แฟร์ๆ"):null,
+      el("button",{class:"btn",disabled:S.busy,onclick:create},"สร้างห้อง")
+    ),
+    rulesPanel()
+  );
+}
+async function join(){
+  const code=S.joinCode.trim().toUpperCase(), name=S.joinName.trim();
+  if(code.length!==5) return toast("กรอกรหัสห้อง 5 ตัว",true);
+  if(!name) return toast("กรอกชื่อก่อน",true);
+  LS.set("name",name);
+  S.sess={code,token:null,hostToken:null};
+  const d=await act("join",{name});
+  if(!d){S.sess=null}else saveSess();
+  render();
+}
+async function create(){
+  const name=S.joinName.trim();
+  if(S.hostPlays&&!name){toast("กรอกชื่อในช่อง \"ชื่อของคุณ\" ก่อน",true);document.getElementById("jn").focus();return}
+  LS.set("name",name);
+  S.busy=true;render();
+  try{
+    const d=await call("create",{name,hostPlays:S.hostPlays,settings:{spies:1,white:0,cat:"",unit:"gulp"}});
+    S.sess={code:d.code,token:d.token,hostToken:d.hostToken};saveSess();
+    S.set=null;applyView(d.view);
+  }catch(e){toast(e.message,true)}
+  finally{S.busy=false;render()}
+}
+function leave(){
+  const r=S.room;
+  if(r&&r.me) call("leave",{code:S.sess.code,token:S.sess.token}).catch(()=>{});
+  S.sess=null;S.room=null;S.set=null;saveSess();render();
+}
+
+/* ---------- room ---------- */
+function roomView(){
+  const r=S.room, g=r.game, me=r.me, parts=[];
+  // header panel
+  parts.push(el("div",{class:"panel"},
+    el("div",{class:"row",style:"align-items:flex-start"},
+      el("div",null,el("p",{class:"muted small"},"รหัสห้อง"),el("div",{class:"roomcode",style:"text-align:left"},r.code)),
+      el("div",{style:"text-align:right;flex:0 0 auto"},
+        el("p",{class:"small"},me?`คุณคือ ${me.name}`:"ผู้คุมเกม (ไม่ได้เล่น)"),
+        r.isHost?el("p",{class:"small drink"},"ผู้คุมเกม"):null,
+        twoTap("leave","ออกจากห้อง","แตะอีกครั้งเพื่อออก",leave,"margin-top:6px"))
+    ),
+    r.isHost&&shareUrl()?det("invite",null,el("summary",{class:"small"},"ลิงก์ชวนเพื่อน"),el("p",{class:"linkbox",style:"margin-top:8px"},shareUrl()+"?room="+r.code)):null,
+    el("p",{class:"small muted"},statusText())
+  ));
+  if(!me&&!r.isHost) parts.push(el("div",{class:"panel"},el("p",{class:"err"},"คุณไม่ได้อยู่ในห้องนี้แล้ว (อาจโดนเตะหรือเข้าจากเครื่องอื่น)"),el("button",{class:"btn",onclick:leave},"กลับหน้าแรก")));
+
+  // my card
+  if(me&&me.inGame&&g) parts.push(cardView(me));
+
+  // white guessing
+  if(r.phase==="white"&&g.white){
+    if(me&&me.id===g.white.id) parts.push(el("div",{class:"panel"},
+      el("h2",null,"คุณคือ Mr. White ที่โดนจับได้"),
+      el("p",{class:"small"},(g.mode==="place"?"ทายสถานที่ของพลเมือง":"ทายคำของพลเมือง")+" 1 ครั้ง ถ้าทายถูกชนะทันที"),
+      el("input",{type:"text",id:"gi",maxlength:"40",value:S.guessDraft,placeholder:"พิมพ์คำที่คิดว่าใช่",oninput:e=>{S.guessDraft=e.target.value}}),
+      el("button",{class:"btn primary",disabled:S.busy,onclick:()=>act("guess",{text:S.guessDraft})},"ส่งคำตอบ")));
+    else parts.push(el("div",{class:"result white"},el("span",{class:"t"},`${pName(g.white.id)} คือ Mr. White!`),el("p",null,"รอ Mr. White ทายคำของพลเมือง…"),
+      r.isHost?el("button",{class:"btn sm",onclick:()=>act("skipGuess")},"ข้าม (นับว่าทายผิด)"):null));
+  }
+
+  // result of last elimination
+  if(g&&g.last) parts.push(lastView(g));
+
+  // game over
+  if(r.phase==="over"&&g) parts.push(overView(r,g));
+
+  // bonus card
+  if(r.bonus&&(r.phase==="play"||r.phase==="white")) parts.push(el("div",{class:"result win"},el("span",{class:"small muted"},"การ์ดลงโทษพิเศษ"),el("p",{class:"drink"},r.bonus.text)));
+
+  // play: order + hints + voting
+  if(r.phase==="play") parts.push(playView(r,g,me));
+
+  // lobby players
+  if(r.phase==="lobby"||r.phase==="over") parts.push(lobbyView(r));
+
+  // host controls
+  if(r.isHost) parts.push(hostView(r,g));
+
+  if(g&&g.history&&g.history.length) parts.push(historyView(g));
+  parts.push(rulesPanel());
+  return el("section",{class:"wrap",style:"padding:0"},parts);
+}
+function statusText(){
+  const r=S.room,g=r.game;
+  if(r.phase==="lobby") return `รอผู้เล่น · ตอนนี้ ${r.players.length} คน`;
+  if(r.phase==="play") return `ตาที่ ${g.no} · รอบที่ ${g.round} · หมวด ${g.cat}${g.tie?" · โหวตใหม่เฉพาะคนที่คะแนนเท่ากัน":""}`;
+  if(r.phase==="white") return `ตาที่ ${g.no} · รอ Mr. White ทายคำ`;
+  return `ตาที่ ${g.no} จบแล้ว · รอผู้คุมเกมเริ่มตาใหม่`;
+}
+function cardView(me){
+  const word=me.word;
+  return el("div",null,
+    el("button",{class:"coaster","aria-label":"แตะเพื่อดูหรือซ่อนคำ",onclick:()=>{S.shownFor=S.shownFor===S.room.gameNo?-1:S.room.gameNo;render()}},
+      el("span",{class:"sn"},`ที่นั่ง ${me.seat} · ${me.name}`),
+      S.shownFor===S.room.gameNo?(word?[el("span",{class:"hint"},me.prole?"สถานที่":"คำของคุณ"),el("span",{class:"word"},word),me.prole?el("span",{class:"role"},"บทบาท: ",el("b",null,me.prole)):null,el("span",{class:"hint"},"แตะเพื่อซ่อน")]
+                   :[el("span",{class:"word",style:"color:var(--blue)"},"Mr. White"),el("span",{class:"hint"},S.room.game&&S.room.game.mode==="place"?"คุณไม่รู้สถานที่ ฟังเพื่อนแล้วเนียนให้รอด":"คุณไม่มีคำ ฟังเพื่อนใบ้แล้วเนียนให้รอด")])
+             :[el("span",{class:"word",style:"color:var(--muted)"},"• • •"),el("span",{class:"hint"},"แตะเพื่อดูคำ อย่าให้ใครเห็น")]),
+    !me.alive?el("p",{class:"center small muted",style:"margin-top:6px"},"คุณตกรอบแล้ว ดูเพื่อนเล่นต่อได้ ห้ามบอกใบ้นะ"):
+      el("p",{class:"center small muted",style:"margin-top:6px"},"คุณอาจเป็นสายลับโดยไม่รู้ตัวก็ได้ ฟังคำใบ้เพื่อนให้ดี"));
+}
+function orderedPlayers(r,g){
+  const inG=r.players.filter(p=>p.inGame).sort((a,b)=>a.seat-b.seat);
+  const i=Math.max(0,inG.findIndex(p=>p.id===g.startId));
+  return inG.slice(i).concat(inG.slice(0,i));
+}
+function playView(r,g,me){
+  const list=orderedPlayers(r,g), alive=list.filter(p=>p.alive);
+  const canAct=me&&me.inGame&&me.alive;
+  const voted=new Set(g.voted), hinted=new Set(g.hinted||[]);
+  const targets=alive.filter(p=>(!me||p.id!==me.id)&&(!g.tie||g.tie.includes(p.id)));
+  const open=g.hintOpen, timed=g.hintEnds>0, left=hintLeft();
+  const myHint=me&&g.hints[me.id];
+  const parts=[
+    el("h2",null,open?`รอบที่ ${g.round} · เวลาพิมพ์คำใบ้`:`รอบที่ ${g.round} · คำใบ้`),
+    el("p",{class:"muted small"},g.mode==="place"?`ใบ้คนละ 1 ประโยคแบบสวมบทบาท เช่น "เมื่อเช้าเพิ่งโดนเด็กแกล้ง" ห้ามพูดชื่อสถานที่หรือบทบาทตรงๆ`:`ใบ้คนละ 1 ประโยค ห้ามพูดคำตรงๆ`)
+  ];
+  if(open) parts.push(el("div",{class:"timer"+(left<=5?" low":""),id:"timerbox"},el("span",{class:"sec",id:"cd"},left),
+    el("span",{class:"small"},"วินาที · ระหว่างนี้จะเห็นแค่คำใบ้ของตัวเอง หมดเวลาหรือส่งครบทุกคนแล้วจะเปิดให้เห็นพร้อมกัน",el("br"),el("b",null,`ส่งแล้ว ${alive.filter(p=>hinted.has(p.id)).length}/${alive.length} คน`))));
+  parts.push(el("ul",{class:"plist"},list.map(p=>el("li",{class:(p.alive?"":"out ")+(p.id===g.startId&&p.alive?"start ":"")+(me&&p.id===me.id?"mine":"")},
+      el("span",{class:"seatno"},p.seat),
+      el("span",{class:"nm"},el("b",null,p.name),g.hints[p.id]?el("span",null,`“${g.hints[p.id]}”`):(open&&hinted.has(p.id)?el("span",null,"• • • (ซ่อนไว้จนหมดเวลา)"):null)),
+      !p.alive?el("span",{class:"tagr "+(p.role||"")},ROLE[p.role]||"ออก"):open?(hinted.has(p.id)?el("span",{class:"tagr ok"},"ส่งแล้ว"):el("span",{class:"tagr"},"กำลังพิมพ์…")):voted.has(p.id)?el("span",{class:"tagr ok"},"โหวตแล้ว"):null))));
+  if(canAct&&(open||!timed)) parts.push(el("div",{class:"row"},
+      el("input",{type:"text",id:"hi",maxlength:"60",value:S.hintDraft,placeholder:myHint?"แก้คำใบ้ได้จนหมดเวลา":"พิมพ์คำใบ้ของคุณ",style:"flex:3 1 200px",oninput:e=>{S.hintDraft=e.target.value},onkeydown:e=>{if(e.key==="Enter")sendHint()}}),
+      el("button",{class:"btn primary",style:"flex:1 0 auto",onclick:sendHint},myHint?"แก้คำใบ้":"ส่งคำใบ้")));
+  if(canAct&&open&&timed) parts.push(el("p",{class:"small muted"},"ถ้าพิมพ์ไว้แต่ลืมกดส่ง ระบบจะส่งให้อัตโนมัติก่อนหมดเวลา"));
+  if(open){
+    parts.push(el("p",{class:"small muted",style:"margin-top:4px"},"โหวตได้หลังหมดเวลาใบ้ (ช่วงโหวตไม่มีจับเวลา)"));
+    return el("div",{class:"panel"},parts);
+  }
+  parts.push(
+    el("h2",{style:"margin-top:6px"},g.tie?"โหวตใหม่ (คะแนนเท่ากัน)":"โหวตว่าใครคือสายลับ"),
+    g.tie&&g.tieTally?el("p",{class:"small muted"},"รอบก่อน: "+g.tieTally.map(t=>`${t.name} ${t.n}`).concat(g.tieSkips?[`ข้าม ${g.tieSkips}`]:[]).join(" · ")):null,
+    canAct?el("div",{class:"votes"},targets.map(p=>el("button",{class:"vbtn","aria-pressed":String(g.myVote===p.id),
+        onclick:()=>voteFor(g.myVote===p.id?null:p.id)},p.name,el("small",null,`ที่นั่ง ${p.seat}`))),
+        el("button",{class:"vbtn skip","aria-pressed":String(g.myVote==="SKIP"),
+        onclick:()=>voteFor(g.myVote==="SKIP"?null:"SKIP")},"ข้ามการโหวต",el("small",null,"ยังไม่แน่ใจ ไม่โหวตใคร")))
+      :el("p",{class:"muted small"},me&&me.inGame?"คุณตกรอบแล้ว โหวตไม่ได้":"คุณไม่ได้เล่นตานี้"),
+    el("p",{class:"small muted"},`โหวตแล้ว ${alive.filter(p=>voted.has(p.id)).length}/${alive.length} คน · ไม่มีจับเวลา ครบทุกคนแล้วระบบนับคะแนนเองทันที · ถ้าคนกดข้ามเยอะกว่าหรือเท่ากับคะแนนสูงสุด จะไม่มีใครออก`)
+  );
+  return el("div",{class:"panel"},parts);
+}
+function sendHint(){
+  const text=S.hintDraft.replace(/\s+/g," ").trim().slice(0,60);S.autoSent=S.hintDraft;
+  fast("hint",{text},room=>{const g=room.game,id=room.me.id;if(text)g.hints[id]=text;else delete g.hints[id];const h=new Set(g.hinted||[]);text?h.add(id):h.delete(id);g.hinted=[...h]});
+}
+function historyView(g){
+  const rounds=g.history.slice().reverse();
+  return det("hist",{class:"panel"},el("summary",null,`คำใบ้รอบที่ผ่านมา (${rounds.length} รอบ)`),
+    el("div",{class:"hist"},rounds.map(h=>el("div",{class:"rd"},
+      el("b",null,`รอบที่ ${h.round} · `,h.result.type==="skip"?"ไม่มีใครออก":el("span",{style:`color:var(--${h.result.role==="spy"?"red":h.result.role==="white"?"blue":"green"})`},`${h.result.name} ออก (${ROLE[h.result.role]||""})`)),
+      h.hints.length?el("ul",{class:"small"},h.hints.map(x=>el("li",null,el("b",null,x.name),` “${x.text}”`))):el("p",{class:"small muted"},"ไม่มีใครพิมพ์คำใบ้")))));
+}
+function lastView(g){
+  const L=g.last;
+  const tallyTxt=(L.tally||[]).map(t=>`${t.name} ${t.n}`).concat(L.skips?[`ข้าม ${L.skips}`]:[]).join(" · ");
+  if(L.skipped) return el("div",{class:"result"},
+    el("span",{class:"small muted"},`ผลรอบที่ ${L.round}`),
+    el("span",{class:"t"},"ไม่มีใครถูกโหวตออก"),
+    el("p",{class:"small"},"คนกดข้ามเยอะกว่าคะแนนโหวต ไปรอบต่อไปเลย"),
+    tallyTxt?el("p",{class:"small muted"},"คะแนนโหวต: "+tallyTxt):null);
+  const cls=L.role==="spy"?"spy":L.role==="white"?"white":"civ";
+  const head=L.role==="civ"?`${L.name} (ที่นั่ง ${L.seat}) เป็นพลเมือง`:L.role==="spy"?`${L.name} (ที่นั่ง ${L.seat}) คือสายลับ!`:`${L.name} (ที่นั่ง ${L.seat}) คือ Mr. White!`;
+  return el("div",{class:"result "+cls},
+    el("span",{class:"small muted"},`ผลรอบที่ ${L.round}`+(L.how==="host"?" · ผู้คุมเกมเลือกออก":"")),
+    el("span",{class:"t"},head),
+    L.role==="civ"?el("p",null,"โหวตผิดคน! ",el("span",{class:"drink"},L.msg)):null,
+    L.role==="spy"?el("p",null,"จับได้แล้ว ",el("span",{class:"drink"},L.msg)):null,
+    L.role!=="white"&&prole(L.id)?el("p",{class:"small"},`บทบาท: ${prole(L.id)}`):null,
+    L.role==="civ"&&L.voters&&L.voters.length?el("p",{class:"small"},"คนที่โหวต: "+L.voters.join(", ")):null,
+    L.role==="white"&&g.white&&g.white.guess!=null?el("p",null,`ทายว่า “${g.white.guess}” `,g.white.ok?el("b",{class:"drink"},"ถูก!"):["ผิด ",el("span",{class:"drink"},g.white.msg)]):null,
+    tallyTxt?el("p",{class:"small muted"},"คะแนนโหวต: "+tallyTxt):null
+  );
+}
+function overView(r,g){
+  const w=g.winner;
+  const title=w==="civ"?"พลเมืองชนะ!":w==="spy"?"ฝ่ายสายลับชนะ!":w==="white"?"Mr. White ทายถูก ชนะทันที!":"จบตานี้แล้ว";
+  const who=role=>r.players.filter(p=>p.role===role).map(p=>p.name).join(", ");
+  return el("div",{class:"result win"},
+    el("span",{class:"t"},title),
+    g.winMsg?el("p",{class:"drink"},g.winMsg):null,
+    g.reveal?el("p",null,g.mode==="place"?"สถานที่พลเมือง: ":"คำพลเมือง: ",el("b",null,g.reveal.civ),g.mode==="place"?" · สถานที่สายลับ: ":" · คำสายลับ: ",el("b",null,g.reveal.spy)):null,
+    g.mode==="place"?el("p",{class:"small"},"บทบาท: "+r.players.filter(p=>p.prole).map(p=>`${p.name}=${p.prole}`).join(", ")):null,
+    el("p",{class:"small"},`สายลับ: ${who("spy")||"-"}`+(who("white")?` · Mr. White: ${who("white")}`:"")),
+    el("p",{class:"small muted"},r.isHost?"ตั้งค่าแล้วกด \"เริ่มตาใหม่\" ด้านล่างได้เลย":"รอผู้คุมเกมเริ่มตาใหม่")
+  );
+}
+function lobbyView(r){
+  const me=r.me;
+  return el("div",{class:"panel"},
+    el("h2",null,`ผู้เล่นในห้อง (${r.players.length}/20)`),
+    r.players.length?el("ul",{class:"plist"},r.players.map(p=>el("li",{class:me&&p.id===me.id?"mine":""},
+      el("span",{class:"nm"},el("b",null,p.name),!p.locked?el("span",null,"ปลดล็อกแล้ว รอเข้าใหม่"):null),
+      r.phase==="over"&&p.role?el("span",{class:"tagr "+p.role},ROLE[p.role]):null,
+      r.isHost&&p.locked&&(!me||p.id!==me.id)?el("button",{class:"btn sm",title:"ให้คนนี้เข้าใหม่จากเครื่องอื่นได้",onclick:()=>act("unlock",{pid:p.id},`ปลดล็อก ${p.name} แล้ว`)},"ปลดล็อก"):null,
+      r.isHost&&(!me||p.id!==me.id)?twoTap("kick"+p.id,"เตะ","ยืนยันเตะ",()=>act("kick",{pid:p.id})):null
+    ))):el("p",{class:"muted small"},"ยังไม่มีใครเข้าห้อง"),
+    el("p",{class:"muted small"},r.isHost?"บอกรหัสห้องให้เพื่อนกรอกในมือถือตัวเอง ถ้ามีชื่อแปลกหรือคนเดียวเข้าสองชื่อ กด \"เตะ\" ได้":"รอผู้คุมเกมกดเริ่ม…")
+  );
+}
+function twoTap(key,label,sure,fn,style){
+  const armed=S.armed===key;
+  return el("button",{class:"btn sm"+(armed?" danger":""),style:style||null,onclick:()=>{if(armed){S.armed=null;fn()}else{S.armed=key;render();clearTimeout(twoTap.t);twoTap.t=setTimeout(()=>{if(S.armed===key){S.armed=null;render()}},3000)}}},armed?sure:label);
+}
+function stepper(val,min,max,on){
+  return el("div",{class:"stepper"},
+    el("button",{"aria-label":"ลด",disabled:val<=min,onclick:()=>on(val-1)},"−"),el("output",null,val),
+    el("button",{"aria-label":"เพิ่ม",disabled:val>=max,onclick:()=>on(val+1)},"+"));
+}
+function hostView(r,g){
+  const s=S.set||(S.set=Object.assign({},r.settings));
+  const n=r.players.length, mb=Math.max(1,Math.floor((n-1)/2));
+  const parts=[el("h2",null,"แผงผู้คุมเกม")];
+  if(r.phase==="lobby"||r.phase==="over"){
+    if(s.spies+s.white>mb){s.white=0;s.spies=Math.max(1,Math.min(s.spies,mb))}
+    parts.push(
+      el("div",{class:"grid2"},
+        el("div",{class:"field"},el("label",null,"จำนวนสายลับ"),stepper(s.spies,1,Math.max(1,Math.min(3,mb-s.white)),v=>{s.spies=v;render()})),
+        el("div",{class:"field"},el("label",null,"Mr. White"),el("div",{class:"seg"},[[0,"ไม่มี"],[1,"มี"]].map(([v,l])=>el("button",{"aria-pressed":String(s.white===v),disabled:v===1&&s.spies+1>mb,onclick:()=>{s.white=v;render()}},l))))),
+      el("div",{class:"field"},el("label",null,"โหมดเกม"),
+        el("div",{class:"seg"},[["word","คำศัพท์"],["place","สถานที่ + บทบาท"]].map(([k,l])=>el("button",{"aria-pressed":String((s.mode||"word")===k),onclick:()=>{s.mode=k;render()}},l)))),
+      s.mode==="place"?el("div",{class:"field"},
+        el("p",{class:"small muted"},`ทุกคนได้สถานที่ + บทบาทของตัวเอง เช่น โรงเรียน · ครูพละ สายลับได้อีกที่หนึ่งพร้อมบทบาทของที่นั่น สถานที่ทั้งสองคอลัมน์ในชีทสลับกันเป็นของพลเมืองหรือสายลับได้${S.cfg&&S.cfg.placeCount?` · มี ${S.cfg.placeCount} คู่`:""}`),
+        el("label",null,"การจับคู่สถานที่ของสายลับ"),
+        el("div",{class:"seg"},[["sheet","ตามคู่ในชีท"],["mix","ผสม"],["random","สุ่มคู่ใหม่"]].map(([k,l])=>el("button",{"aria-pressed":String((s.pair||"mix")===k),onclick:()=>{s.pair=k;render()}},l))),
+        el("p",{class:"small muted"},(s.pair||"mix")==="sheet"?"สายลับได้ที่ที่คล้ายกันตามชีทเสมอ เล่นยาก แต่เล่นบ่อยแล้วอาจจำคู่ได้":(s.pair||"mix")==="random"?"สายลับได้สถานที่ไหนก็ได้ เดาคู่ไม่ได้เลย แต่บางตาจะต่างกันมากจนจับง่าย":"ครึ่งหนึ่งใช้คู่ในชีท อีกครึ่งสุ่มคู่ใหม่ เดายากขึ้นแต่ยังสนุก")):
+      el("div",{class:"field"},el("label",{for:"cat"},"หมวดคำ"),
+        el("select",{id:"cat",onchange:e=>{s.cat=e.target.value}},
+          [el("option",{value:""},"ทุกหมวด")].concat((S.cfg?S.cfg.cats:[]).map(c=>{const o=el("option",{value:c.name},`${c.name} (${c.count} คู่)`);if(c.name===s.cat)o.selected=true;return o})))),
+      el("div",{class:"field"},el("label",null,"เวลาพิมพ์คำใบ้ต่อรอบ"),
+        el("div",{class:"seg"},[[15,"15 วิ"],[30,"30 วิ"],[60,"60 วิ"],[0,"ไม่จับเวลา"]].map(([k,l])=>el("button",{"aria-pressed":String((s.hintSec==null?15:s.hintSec)===k),onclick:()=>{s.hintSec=k;render()}},l)))),
+      el("div",{class:"field"},el("label",null,"ระดับบทลงโทษ"),
+        el("div",{class:"seg"},[["sip","จิบ"],["gulp","อึก"],["shot","ช็อต"]].map(([k,l])=>el("button",{"aria-pressed":String(s.unit===k),onclick:()=>{s.unit=k;render()}},l)))),
+      el("p",{class:"small muted"},n<3?`ต้องมีผู้เล่นอย่างน้อย 3 คน (ตอนนี้ ${n})`:`${n} คน · สายลับ ${s.spies}${s.white?" · Mr. White 1":""} · เซิร์ฟเวอร์จะสุ่มที่นั่งและแจกคำให้แต่ละเครื่อง`),
+      el("button",{class:"btn primary",disabled:S.busy||n<3,onclick:()=>act("start",{settings:s})},r.phase==="over"?"เริ่มตาใหม่":"เริ่มเกม"),
+      el("div",{class:"row"},
+        el("button",{class:"btn sm",disabled:S.busy,onclick:async()=>{S.busy=true;render();try{S.cfg=await call("reloadWords");toast("โหลดชุดคำจากชีทใหม่แล้ว")}catch(e){toast(e.message,true)}finally{S.busy=false;render()}}},"โหลดชุดคำจากชีทใหม่")),
+      S.cfg?el("p",{class:"small muted"},S.cfg.src==="sheet"?`ชุดคำจาก Google Sheet · ${S.cfg.cats.length} หมวด`:`ใช้ชุดคำสำรอง${S.cfg.err?` (${S.cfg.err})`:""}`):null
+    );
+  }
+  if(r.phase==="play"){
+    const alive=r.players.filter(p=>p.inGame&&p.alive);
+    if(g.hintOpen) parts.push(el("button",{class:"btn",disabled:S.busy,onclick:()=>act("endHint")},"หยุดเวลา เปิดคำใบ้เลย"));
+    parts.push(
+      el("button",{class:"btn primary",disabled:S.busy||!g.voted.length,onclick:()=>act("close")},`นับคะแนนเลย ไม่รอครบ (${g.voted.length}/${alive.length})`),
+      el("p",{class:"small muted"},"ปกติระบบนับเองเมื่อทุกคนโหวตหรือกดข้ามครบ ใช้ปุ่มนี้เมื่อมีคนไม่ยอมโหวต · คะแนนเท่ากันจะให้โหวตใหม่เฉพาะคนที่เท่ากัน ถ้าเล่นแบบชี้นิ้วในวง ใช้ \"เลือกคนออกเอง\" ด้านล่างแทนได้"),
+      det("manual",null,el("summary",{class:"small"},"เลือกคนออกเอง"),
+        el("div",{class:"votes",style:"margin-top:10px"},alive.map(p=>el("button",{class:"vbtn","aria-pressed":String(S.manualPick===p.id),onclick:()=>{S.manualPick=S.manualPick===p.id?null:p.id;render()}},p.name,el("small",null,`ที่นั่ง ${p.seat}`)))),
+        el("button",{class:"btn danger",style:"margin-top:10px;width:100%",disabled:!S.manualPick||S.busy,onclick:()=>{act("eliminate",{target:S.manualPick});S.manualPick=null}},S.manualPick?`ให้ ${pName(S.manualPick)} ออก`:"เลือกคนก่อน"))
+    );
+  }
+  if(r.phase==="play"||r.phase==="white"){
+    parts.push(
+      el("button",{class:"btn",disabled:S.busy,onclick:()=>act("bonus")},"สุ่มการ์ดลงโทษพิเศษ (ทุกคนเห็น)"),
+      !S.confirmAbort?el("button",{class:"btn sm",onclick:()=>{S.confirmAbort=true;render()}},"จบตานี้และเฉลย")
+        :el("div",{class:"row"},el("button",{class:"btn sm",onclick:()=>{S.confirmAbort=false;render()}},"ยกเลิก"),el("button",{class:"btn sm danger",onclick:()=>{S.confirmAbort=false;act("abort")}},"ยืนยันจบตา"))
+    );
+  }
+  return el("div",{class:"panel",style:"border-color:var(--amber)"},parts);
+}
+function rulesPanel(){
+  const pen=S.room&&S.room.game?S.room.game.pen:null;
+  return det("rules",{class:"panel"},
+    el("summary",null,"กติกา"),
+    el("ol",{class:"small"},
+      el("li",null,"ผู้คุมเกมสร้างห้อง บอกรหัสให้เพื่อน ทุกคนเข้าห้องจากมือถือตัวเองด้วยชื่อตัวเอง"),
+      el("li",null,"กดเริ่มเกม เซิร์ฟเวอร์สุ่มที่นั่งและแจกคำ แต่ละเครื่องเห็นเฉพาะคำของตัวเอง (สลับดูของคนอื่นไม่ได้)"),
+      el("li",null,"พลเมืองได้คำเดียวกัน สายลับได้คำคล้ายๆ และไม่รู้ตัว Mr. White ไม่ได้คำ"),
+      el("li",null,"ใบ้ตามลำดับคนละ 1 ประโยค ห้ามพูดคำตรงๆ แล้วทุกคนโหวตหรือกดข้ามในมือถือ ครบทุกคนระบบนับคะแนนเอง ถ้าคนข้ามเยอะกว่าคะแนนสูงสุดจะไม่มีใครออก"),
+      el("li",null,"โหมดสถานที่ + บทบาท: ได้ชื่อสถานที่และบทบาท (เช่น โรงเรียน · ภารโรง) ใบ้แบบสวมบทบาท สายลับได้สถานที่คล้ายๆ"),
+      el("li",null,"Mr. White ที่โดนโหวตออกได้ทายคำพลเมือง 1 ครั้ง ทายถูกชนะทันที"),
+      el("li",null,"พลเมืองชนะเมื่อจับสายลับและ Mr. White ได้หมด สายลับชนะเมื่อฝ่ายตัวเองเหลือเท่ากับพลเมือง")),
+    pen?el("ul",{class:"small"},Object.keys(pen).map(k=>el("li",null,(S.cfg&&S.cfg.pen[k]?S.cfg.pen[k].label+": ":"")+pen[k].replace(/\{S\}/g,"ที่โดนโหวต")))):null
+  );
+}
+
+/* ---------- boot ---------- */
+call("config").then(c=>{S.cfg=c;render()}).catch(()=>{});
+function setRoomParam(c){if(c&&!S.sess){S.joinCode=String(c).toUpperCase().slice(0,5);render()}}
+if(IN_GAS){try{google.script.url.getLocation(loc=>setRoomParam(loc&&loc.parameter&&loc.parameter.room))}catch(e){}}
+else setRoomParam(new URLSearchParams(location.search).get("room"));
+render();
+loop();
+setInterval(()=>{
+  const g=S.room&&S.room.game;
+  if(!g||S.room.phase!=="play"||!g.hintOpen) return;
+  const left=hintLeft(), cd=document.getElementById("cd"), box=document.getElementById("timerbox");
+  if(cd&&cd.textContent!==String(left)){cd.textContent=left;if(box)box.classList.toggle("low",left<=5)}
+  const me=S.room.me, ms=g.hintEnds-now();
+  if(me&&me.alive&&me.inGame&&ms<1500&&ms>0&&S.hintDraft.trim()&&S.hintDraft.trim()!==(g.hints[me.id]||"")&&S.autoSent!==S.hintDraft) sendHint();
+  if(ms<=0&&!S.force){S.force=true;poll()}
+},250);
+})();
+</script>
+</body>
+</html>
