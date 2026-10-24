@@ -117,7 +117,7 @@ const LS={
 /* ===== ตั้งค่าตอนฝากเว็บบน GitHub Pages =====
    วางลิงก์เว็บแอป Apps Script ที่ลงท้ายด้วย /exec ไว้ในเครื่องหมายคำพูดด้านล่าง
    (ถ้าเปิดผ่านลิงก์ Apps Script โดยตรง ไม่ต้องแก้อะไร) */
-const API_URL = ""https://script.google.com/macros/s/AKfycbyrJ8eRTPrS35AMIbQvtMnIst4SYjXCgkDFCAsehLLDanb9PB9OTyRruxJATOFI3N8R/exec";";
+const API_URL = "https://script.google.com/macros/s/AKfycbyrJ8eRTPrS35AMIbQvtMnIst4SYjXCgkDFCAsehLLDanb9PB9OTyRruxJATOFI3N8R/exec";
 const IN_GAS = !!(window.google&&google.script&&google.script.run);
 function apiUrl(){return API_URL||LS.get("api","")}
 if(!IN_GAS){
