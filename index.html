@@ -445,19 +445,27 @@ function playView(r,g,me){
   const list=orderedPlayers(r,g), alive=list.filter(p=>p.alive);
   const canAct=me&&me.inGame&&me.alive;
   const voted=new Set(g.voted), hinted=new Set(g.hinted||[]);
-  const targets=alive.filter(p=>(!me||p.id!==me.id)&&(!g.tie||g.tie.includes(p.id)));
   const open=g.hintOpen, timed=g.hintEnds>0, left=hintLeft();
   const myHint=me&&g.hints[me.id];
+  const voting=!open&&canAct;
+  const canVote=p=>voting&&p.alive&&p.id!==me.id&&(!g.tie||g.tie.includes(p.id));
   const parts=[
-    el("h2",null,open?`รอบที่ ${g.round} · เวลาพิมพ์คำใบ้`:`รอบที่ ${g.round} · คำใบ้`),
+    el("h2",null,open?`รอบที่ ${g.round} · เวลาพิมพ์คำใบ้`:g.tie?`รอบที่ ${g.round} · โหวตใหม่ (คะแนนเท่ากัน)`:`รอบที่ ${g.round} · โหวตว่าใครคือสายลับ`),
     el("p",{class:"muted small"},g.mode==="place"?`ใบ้คนละ 1 ประโยคแบบสวมบทบาท เช่น "เมื่อเช้าเพิ่งโดนเด็กแกล้ง" ห้ามพูดชื่อสถานที่หรือบทบาทตรงๆ`:`ใบ้คนละ 1 ประโยค ห้ามพูดคำตรงๆ`)
   ];
   if(open) parts.push(el("div",{class:"timer"+(left<=5?" low":""),id:"timerbox"},el("span",{class:"sec",id:"cd"},left),
     el("span",{class:"small"},"วินาที · ระหว่างนี้จะเห็นแค่คำใบ้ของตัวเอง หมดเวลาหรือส่งครบทุกคนแล้วจะเปิดให้เห็นพร้อมกัน",el("br"),el("b",null,`ส่งแล้ว ${alive.filter(p=>hinted.has(p.id)).length}/${alive.length} คน`))));
-  parts.push(el("ul",{class:"plist"},list.map(p=>el("li",{class:(p.alive?"":"out ")+(p.id===g.startId&&p.alive?"start ":"")+(me&&p.id===me.id?"mine":"")},
+  if(voting) parts.push(el("p",null,g.tie?"แตะชื่อ เฉพาะคนที่คะแนนเท่ากันเพื่อโหวตใหม่ (แตะซ้ำเพื่อยกเลิก)":"แตะชื่อ คนที่คิดว่าเป็นสายลับเพื่อโหวต (แตะซ้ำเพื่อยกเลิก)"));
+  if(g.tie&&g.tieTally&&!open) parts.push(el("p",{class:"small muted"},"รอบก่อน: "+g.tieTally.map(t=>`${t.name} ${t.n}`).concat(g.tieSkips?[`ข้าม ${g.tieSkips}`]:[]).join(" · ")));
+  parts.push(el("ul",{class:"plist"},list.map(p=>{
+    const can=canVote(p), on=voting&&g.myVote===p.id;
+    return el("li",{class:(p.alive?"":"out ")+(p.id===g.startId&&p.alive?"start ":"")+(can?"pick ":"")+(on?"sel ":"")+(me&&p.id===me.id?"mine":""),
+      role:can?"button":null,tabindex:can?"0":null,onclick:can?()=>voteFor(g.myVote===p.id?null:p.id):null,
+      onkeydown:can?(e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();voteFor(g.myVote===p.id?null:p.id)}}):null},
       el("span",{class:"seatno"},p.seat),
       el("span",{class:"nm"},el("b",null,p.bot?p.name+" (บอท)":p.name),g.hints[p.id]?el("span",null,`“${g.hints[p.id]}”`):(open&&hinted.has(p.id)?el("span",null,"• • • (ซ่อนไว้จนหมดเวลา)"):null)),
-      !p.alive?el("span",{class:"tagr "+(p.role||"")},ROLE[p.role]||"ออก"):open?(hinted.has(p.id)?el("span",{class:"tagr ok"},"ส่งแล้ว"):el("span",{class:"tagr"},"กำลังพิมพ์…")):voted.has(p.id)?el("span",{class:"tagr ok"},"โหวตแล้ว"):null))));
+      !p.alive?el("span",{class:"tagr "+(p.role||"")},ROLE[p.role]||"ออก"):open?(hinted.has(p.id)?el("span",{class:"tagr ok"},"ส่งแล้ว"):el("span",{class:"tagr"},"กำลังพิมพ์…")):on?el("span",{class:"tagr ok"},"✓ คุณโหวต"):voted.has(p.id)?el("span",{class:"tagr ok"},"โหวตแล้ว"):null);
+  })));
   if(canAct&&(open||!timed)) parts.push(el("div",{class:"row"},
       el("input",{type:"text",id:"hi",maxlength:"60",value:S.hintDraft,placeholder:myHint?"แก้คำใบ้ได้จนหมดเวลา":"พิมพ์คำใบ้ของคุณ",style:"flex:3 1 200px",oninput:e=>{S.hintDraft=e.target.value},onkeydown:e=>{if(e.key==="Enter")sendHint()}}),
       el("button",{class:"btn primary",style:"flex:1 0 auto",onclick:sendHint},myHint?"แก้คำใบ้":"ส่งคำใบ้")));
@@ -466,16 +474,9 @@ function playView(r,g,me){
     parts.push(el("p",{class:"small muted",style:"margin-top:4px"},"โหวตได้หลังหมดเวลาใบ้ (ช่วงโหวตไม่มีจับเวลา)"));
     return el("div",{class:"panel"},parts);
   }
-  parts.push(
-    el("h2",{style:"margin-top:6px"},g.tie?"โหวตใหม่ (คะแนนเท่ากัน)":"โหวตว่าใครคือสายลับ"),
-    g.tie&&g.tieTally?el("p",{class:"small muted"},"รอบก่อน: "+g.tieTally.map(t=>`${t.name} ${t.n}`).concat(g.tieSkips?[`ข้าม ${g.tieSkips}`]:[]).join(" · ")):null,
-    canAct?el("div",{class:"votes"},targets.map(p=>el("button",{class:"vbtn","aria-pressed":String(g.myVote===p.id),
-        onclick:()=>voteFor(g.myVote===p.id?null:p.id)},p.name,el("small",null,`ที่นั่ง ${p.seat}`))),
-        el("button",{class:"vbtn skip","aria-pressed":String(g.myVote==="SKIP"),
-        onclick:()=>voteFor(g.myVote==="SKIP"?null:"SKIP")},"ข้ามการโหวต",el("small",null,"ยังไม่แน่ใจ ไม่โหวตใคร")))
-      :el("p",{class:"muted small"},me&&me.inGame?"คุณตกรอบแล้ว โหวตไม่ได้":"คุณไม่ได้เล่นตานี้"),
-    el("p",{class:"small muted"},`โหวตแล้ว ${alive.filter(p=>voted.has(p.id)).length}/${alive.length} คน · ไม่มีจับเวลา ครบทุกคนแล้วระบบนับคะแนนเองทันที · ถ้าคนกดข้ามเยอะกว่าหรือเท่ากับคะแนนสูงสุด จะไม่มีใครออก`)
-  );
+  if(voting) parts.push(el("div",{class:"row"},el("button",{class:"btn sm"+(g.myVote==="SKIP"?" primary":""),onclick:()=>voteFor(g.myVote==="SKIP"?null:"SKIP")},g.myVote==="SKIP"?"✓ ข้ามการโหวตแล้ว (แตะเพื่อยกเลิก)":"ข้ามการโหวต (ยังไม่แน่ใจ)")));
+  else parts.push(el("p",{class:"muted small"},me&&me.inGame?"คุณตกรอบแล้ว โหวตไม่ได้":"คุณไม่ได้เล่นตานี้"));
+  parts.push(el("p",{class:"small muted"},`โหวตแล้ว ${alive.filter(p=>voted.has(p.id)).length}/${alive.length} คน · ไม่มีจับเวลา ครบทุกคนแล้วระบบนับคะแนนเองทันที · ถ้าคนกดข้ามเยอะกว่าหรือเท่ากับคะแนนสูงสุด จะไม่มีใครออก`));
   return el("div",{class:"panel"},parts);
 }
 function sendHint(){
