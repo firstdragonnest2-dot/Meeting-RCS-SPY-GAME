@@ -456,7 +456,7 @@ function playView(r,g,me){
     el("span",{class:"small"},"วินาที · ระหว่างนี้จะเห็นแค่คำใบ้ของตัวเอง หมดเวลาหรือส่งครบทุกคนแล้วจะเปิดให้เห็นพร้อมกัน",el("br"),el("b",null,`ส่งแล้ว ${alive.filter(p=>hinted.has(p.id)).length}/${alive.length} คน`))));
   parts.push(el("ul",{class:"plist"},list.map(p=>el("li",{class:(p.alive?"":"out ")+(p.id===g.startId&&p.alive?"start ":"")+(me&&p.id===me.id?"mine":"")},
       el("span",{class:"seatno"},p.seat),
-      el("span",{class:"nm"},el("b",null,p.name),g.hints[p.id]?el("span",null,`“${g.hints[p.id]}”`):(open&&hinted.has(p.id)?el("span",null,"• • • (ซ่อนไว้จนหมดเวลา)"):null)),
+      el("span",{class:"nm"},el("b",null,p.bot?p.name+" (บอท)":p.name),g.hints[p.id]?el("span",null,`“${g.hints[p.id]}”`):(open&&hinted.has(p.id)?el("span",null,"• • • (ซ่อนไว้จนหมดเวลา)"):null)),
       !p.alive?el("span",{class:"tagr "+(p.role||"")},ROLE[p.role]||"ออก"):open?(hinted.has(p.id)?el("span",{class:"tagr ok"},"ส่งแล้ว"):el("span",{class:"tagr"},"กำลังพิมพ์…")):voted.has(p.id)?el("span",{class:"tagr ok"},"โหวตแล้ว"):null))));
   if(canAct&&(open||!timed)) parts.push(el("div",{class:"row"},
       el("input",{type:"text",id:"hi",maxlength:"60",value:S.hintDraft,placeholder:myHint?"แก้คำใบ้ได้จนหมดเวลา":"พิมพ์คำใบ้ของคุณ",style:"flex:3 1 200px",oninput:e=>{S.hintDraft=e.target.value},onkeydown:e=>{if(e.key==="Enter")sendHint()}}),
@@ -528,11 +528,14 @@ function lobbyView(r){
   return el("div",{class:"panel"},
     el("h2",null,`ผู้เล่นในห้อง (${r.players.length}/20)`),
     r.players.length?el("ul",{class:"plist"},r.players.map(p=>el("li",{class:me&&p.id===me.id?"mine":""},
-      el("span",{class:"nm"},el("b",null,p.name),!p.locked?el("span",null,"ปลดล็อกแล้ว รอเข้าใหม่"):null),
+      el("span",{class:"nm"},el("b",null,p.name),p.bot?el("span",null,"บอท (เล่นอัตโนมัติ)"):!p.locked?el("span",null,"ปลดล็อกแล้ว รอเข้าใหม่"):null),
       r.phase==="over"&&p.role?(r.type==="ww"?wwRoleTag(p.role):el("span",{class:"tagr "+p.role},ROLE[p.role])):null,
-      r.isHost&&p.locked&&(!me||p.id!==me.id)?el("button",{class:"btn sm",title:"ให้คนนี้เข้าใหม่จากเครื่องอื่นได้",onclick:()=>act("unlock",{pid:p.id},`ปลดล็อก ${p.name} แล้ว`)},"ปลดล็อก"):null,
+      r.isHost&&p.locked&&!p.bot&&(!me||p.id!==me.id)?el("button",{class:"btn sm",title:"ให้คนนี้เข้าใหม่จากเครื่องอื่นได้",onclick:()=>act("unlock",{pid:p.id},`ปลดล็อก ${p.name} แล้ว`)},"ปลดล็อก"):null,
       r.isHost&&(!me||p.id!==me.id)?twoTap("kick"+p.id,"เตะ","ยืนยันเตะ",()=>act("kick",{pid:p.id})):null
     ))):el("p",{class:"muted small"},"ยังไม่มีใครเข้าห้อง"),
+    r.isHost?el("div",{class:"row"},el("button",{class:"btn",disabled:S.busy||r.players.length>=20,onclick:()=>act("addBot",{})},"+ เพิ่มบอท"),
+      r.players.some(p=>p.bot)?el("button",{class:"btn sm",disabled:S.busy,onclick:async()=>{const bots=r.players.filter(p=>p.bot);for(const b of bots)await act("kick",{pid:b.id})}},"ลบบอททั้งหมด"):null):null,
+    r.isHost?el("p",{class:"muted small"},"บอทจะเล่นเองอัตโนมัติ ช่วยให้ครบจำนวนคน บอทโหวตหลังคนจริงโหวตครบแล้ว"):null,
     el("p",{class:"muted small"},r.isHost?"บอกรหัสห้องให้เพื่อนกรอกในมือถือตัวเอง ถ้ามีชื่อแปลกหรือคนเดียวเข้าสองชื่อ กด \"เตะ\" ได้":"รอผู้คุมเกมกดเริ่ม…")
   );
 }
@@ -614,10 +617,11 @@ function rulesPanel(){
 
 
 /* ======================= แวร์วูฟ ======================= */
-const WW={wolf:"หมาป่า",wolfseer:"หมาป่าพยากรณ์",killer:"ฆาตกร",villager:"ชาวบ้าน",seer:"หมอดู",doctor:"ยามหมู่บ้าน",witch:"แม่มด",hunter:"นายพราน",cupid:"คิวปิด",medium:"ผู้สื่อวิญญาณ",shaman:"ร่างทรง",mayor:"หัวหน้าหมู่บ้าน",cursed:"ผู้ต้องสาป",fool:"คนบ้า",kid:"เด็กหัวแข็ง",guard:"บอดี้การ์ด"};
-const WW_EVIL=["wolf","wolfseer","killer"], WW_PACK=["wolf","wolfseer"];
+const WW={wolf:"หมาป่า",wolfseer:"หมาป่าพยากรณ์",killer:"ฆาตกร",villager:"ชาวบ้าน",seer:"หมอดู",doctor:"ยามหมู่บ้าน",witch:"แม่มด",hunter:"นายพราน",cupid:"คิวปิด",medium:"ผู้สื่อวิญญาณ",shaman:"ร่างทรง",mayor:"หัวหน้าหมู่บ้าน",cursed:"ผู้ต้องสาป",fool:"คนบ้า",kid:"เด็กหัวแข็ง",guard:"บอดี้การ์ด",alpha:"หมาป่าจ่าฝูง",drunk:"คนขี้เมา"};
+const WW_EVIL=["wolf","alpha","wolfseer","killer"], WW_PACK=["wolf","alpha","wolfseer"];
 const WW_INFO={
   wolf:{team:"evil",when:"ทุกคืน",can:["เลือกเหยื่อร่วมกับหมาป่าตัวอื่น 1 คน (เห็นกันว่าแต่ละตัวเลือกใคร)","รู้ว่าใครเป็นหมาป่า/หมาป่าพยากรณ์บ้าง","กลางวันแกล้งทำเป็นคนดี"],win:"ฝ่ายร้ายมีจำนวนเท่ากับหรือมากกว่าฝ่ายดี"},
+  alpha:{team:"evil",when:"ทุกคืน",can:["เลือกเหยื่อร่วมกับฝูงหมาป่า","คะแนนเลือกเหยื่อของคุณนับเป็น 2 แต้ม","รู้ว่าใครอยู่ในฝูงหมาป่าบ้าง"],win:"ฝ่ายร้ายมีจำนวนเท่ากับหรือมากกว่าฝ่ายดี"},
   wolfseer:{team:"evil",when:"ทุกคืน",can:["ตรวจดูได้ 1 คนว่าเป็นบทบาทอะไร (เห็นชื่อบทบาทจริงเลย)","อยู่ฝูงเดียวกับหมาป่า รู้ว่าใครเป็นหมาป่า","ถ้าหมาป่าธรรมดาตายหมด จะได้ร่วมกัดแทน"],win:"ฝ่ายร้ายมีจำนวนเท่ากับหรือมากกว่าฝ่ายดี"},
   killer:{team:"evil",when:"ทุกคืน",can:["ฆ่าได้ 1 คนทุกคืน แยกจากหมาป่า","ไม่รู้ว่าใครเป็นหมาป่า และหมาป่าก็ไม่รู้ว่าคุณเป็นใคร","บอดี้การ์ดคุ้มกันเป้าหมายของคุณได้"],win:"ฝ่ายร้ายมีจำนวนเท่ากับหรือมากกว่าฝ่ายดี"},
   villager:{team:"good",when:"-",can:["ไม่มีพลังพิเศษ","สังเกตคำพูดเพื่อน แล้วโหวตแขวนคนร้ายตอนกลางวัน"],win:"ฝ่ายร้ายตายหมด"},
@@ -627,6 +631,7 @@ const WW_INFO={
   hunter:{team:"good",when:"ตอนตาย",can:["ถ้าคุณตาย (ไม่ว่าทางไหน) จะได้ยิงพาใครตายตามไปด้วย 1 คน"],win:"ฝ่ายร้ายตายหมด"},
   cupid:{team:"good",when:"คืนแรกคืนเดียว",can:["เลือก 2 คนให้เป็นคู่รัก (เลือกตัวเองได้)","ถ้าคู่รักคนหนึ่งตาย อีกคนตายตาม","คู่รักต่างฝ่ายชนะเองได้ ถ้ารอดกันแค่สองคน"],win:"ฝ่ายร้ายตายหมด"},
   medium:{team:"good",when:"ตลอดเกม",can:["คุยกับคนที่ตายไปแล้วได้ในห้องคุยกับวิญญาณ","คนตายจะเห็นคุณเป็น \"ผู้สื่อวิญญาณ\" ไม่เห็นชื่อ","เอาเบาะแสจากวิญญาณมาช่วยฝ่ายดี"],win:"ฝ่ายร้ายตายหมด"},
+  drunk:{team:"good",when:"ทุกคืน",can:["เลือกไปกินเหล้าที่บ้านคนอื่น 1 หลัง (หรืออยู่บ้านก็ได้)","ถ้าบ้านนั้นเป็นฝ่ายร้าย คุณเมาตาย (ประกาศตอนเช้า)","ถ้าบ้านนั้นเป็นฝ่ายดี คุณนอนค้างที่นั่น ถ้าหมาป่ากัดหรือฆาตกรเลือกบ้านนั้น ตายทั้งคุณและเจ้าของบ้าน","ถ้าหมาป่าหรือฆาตกรมาที่บ้านคุณตอนที่คุณไปกินเหล้าบ้านอื่น จะเจอบ้านว่าง ไม่มีใครตาย"],win:"ฝ่ายร้ายตายหมด"},
   guard:{team:"good",when:"ทุกคืน",can:["คุ้มกัน 1 คนไม่ให้ตายคืนนี้ (กันได้ทั้งหมาป่ากัดและฆาตกร)","คุ้มกันตัวเองได้ ห้ามคุ้มกันคนเดิมสองคืนติดกัน","กันยาพิษของแม่มดไม่ได้"],win:"ฝ่ายร้ายตายหมด"},
   shaman:{team:"good",when:"ทุกคืน",can:["เลือกคนที่ตายไปแล้ว 1 คน","เช้าวันรุ่งขึ้น วิญญาณคนนั้นได้พิมพ์ข้อความถึงทุกคน 1 ครั้ง","ใช้ได้เมื่อมีคนตายแล้วอย่างน้อย 1 คน"],win:"ฝ่ายร้ายตายหมด"},
   mayor:{team:"good",when:"กลางวัน",can:["คะแนนโหวตแขวนคอของคุณนับเป็น 2 แต้ม (กดข้ามก็นับ 2)","ไม่มีใครรู้ว่าคุณเป็นหัวหน้าหมู่บ้าน ยกเว้นคุณบอกเอง"],win:"ฝ่ายร้ายตายหมด"},
@@ -635,8 +640,8 @@ const WW_INFO={
   fool:{team:"neutral",when:"กลางวัน",can:["ไม่มีพลังพิเศษ หมอดูส่องจะขึ้นว่า \"ดี\"","ทำตัวน่าสงสัยให้คนโหวตแขวนคุณ"],win:"ถูกโหวตแขวนคอเมื่อไหร่ ชนะคนเดียวทันที"}
 };
 const WW_TEAM={evil:"ฝ่ายร้าย",good:"ฝ่ายดี",neutral:"ไม่มีฝ่าย"};
-const WW_CAUSE={night:"ตายเมื่อคืน",love:"ตายตามคนรัก",lynch:"ถูกแขวนคอ",shot:"โดนนายพรานยิง"};
-const WW_ORDER=["wolf","wolfseer","killer","seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","fool","kid","villager"];
+const WW_CAUSE={drunk:"เมาหลับแล้วไม่ตื่นอีกเลย",night:"ตายเมื่อคืน",love:"ตายตามคนรัก",lynch:"ถูกแขวนคอ",shot:"โดนนายพรานยิง"};
+const WW_ORDER=["wolf","alpha","wolfseer","killer","seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","fool","kid","villager"];
 function wwTeamOf(role){return (WW_INFO[role]||{}).team||"good"}
 function wwRoleTag(role){return role?el("span",{class:"tagr "+(wwTeamOf(role)==="evil"?"spy":wwTeamOf(role)==="neutral"?"white":"civ")},WW[role]):null}
 function wwLeft(){const g=S.room&&S.room.game;if(!g||!g.deadline)return 0;return Math.max(0,Math.ceil((g.deadline-now())/1000))}
@@ -805,11 +810,16 @@ function wwMode(r,g,me){
   const title=`คืนที่ ${g.night}`;
   if(!mine) return {title,hint:me&&me.inGame?"คุณตายแล้ว ดูเพื่อนเล่นต่อได้":"รอผู้เล่นทำหน้าที่กลางคืน"};
   const packIds=(me.pack||[]).map(p=>p.id);
-  const cnt={};Object.values(g.wolfVotes||{}).forEach(t=>cnt[t]=(cnt[t]||0)+1);
+  const roleOf=id=>id===me.id?me.role:((me.pack||[]).find(p=>p.id===id)||{}).role;
+  const cnt={};Object.entries(g.wolfVotes||{}).forEach(([w,t])=>cnt[t]=(cnt[t]||0)+(roleOf(w)==="alpha"?2:1));
   const biteMode={title:`${title} · ${WW[mine]}: เลือกเหยื่อ`,hint:"แตะชื่อ เหยื่อที่จะกัดคืนนี้ เปลี่ยนได้จนหมดเวลา (เพื่อนหมาป่าเห็นว่าคุณเลือกใคร)",
-    ok:p=>alive(p)&&p.id!==me.id&&!packIds.includes(p.id),sel:g.myBite,note:p=>cnt[p.id]?`หมาป่าเลือก ${cnt[p.id]}`:null,
+    ok:p=>alive(p)&&p.id!==me.id&&!packIds.includes(p.id),sel:g.myBite,note:p=>cnt[p.id]?`คะแนนหมาป่า ${cnt[p.id]}`:null,
     pick:id=>fast("ww_act",{kind:"bite",target:id},rm=>{rm.game.myBite=id;rm.game.wolfVotes=Object.assign({},rm.game.wolfVotes,{[me.id]:id})})};
   if(mine==="wolf") return biteMode;
+  if(mine==="alpha"){biteMode.title=`${title} · หมาป่าจ่าฝูง: เลือกเหยื่อ`;biteMode.hint="แตะชื่อ เหยื่อที่จะกัดคืนนี้ คะแนนของคุณนับเป็น 2 แต้ม เปลี่ยนได้จนหมดเวลา";return biteMode}
+  if(mine==="drunk") return {title:`${title} · คนขี้เมา: ไปกินเหล้าบ้านใคร`,hint:"แตะชื่อ บ้านที่จะไปกินเหล้าคืนนี้ บ้านคนร้าย = เมาตาย · บ้านคนดี = นอนค้าง (ถ้าหมาป่าหรือฆาตกรมาบ้านนั้น ตายทั้งคู่) เปลี่ยนได้จนหมดเวลา",
+    ok:p=>alive(p)&&p.id!==me.id,sel:g.myAct,pick:id=>fast("ww_act",{target:id},rm=>{rm.game.myAct=id;rm.game.myDone=true}),
+    extra:[el("button",{class:"btn sm"+(g.myAct==="SKIP"?" primary":""),onclick:()=>fast("ww_act",{target:"SKIP"},rm=>{rm.game.myAct="SKIP";rm.game.myDone=true})},g.myAct==="SKIP"?"✓ อยู่บ้าน":"คืนนี้อยู่บ้าน")]};
   if(mine==="wolfseer"){
     const s=wwSel("wcheck");
     const check={title:`${title} · หมาป่าพยากรณ์: ตรวจบทบาท`,hint:g.myDone?"คืนนี้ตรวจแล้ว ดูผลในการ์ดของคุณ":"แตะชื่อ คนที่จะตรวจ แล้วกดยืนยัน (จะเห็นบทบาทจริงของเขา)",
@@ -872,6 +882,7 @@ function wwMainPanel(r,g,me){
       const can=!!(m.ok&&m.ok(p)), on=sel.includes(p.id);
       const tags=[];
       if(me&&p.id===me.id) tags.push("คุณ");
+      if(p.bot) tags.push("บอท");
       if(packIds.includes(p.id)) tags.push("ฝูงหมาป่า");
       if(me&&me.lover===p.id) tags.push("คู่รัก");
       if(me&&me.mission&&me.mission.active&&me.mission.target===p.id) tags.push("เป้าหมายภารกิจ");
@@ -912,7 +923,7 @@ function wwOverView(r,g){
 function wwRolesInGame(r){
   const s=r.settings||{};const n=r.players.filter(p=>p.inGame).length||r.players.length;
   const roles=[];if(s.wolves)roles.push(["wolf",s.wolves]);
-  ["wolfseer","killer","seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","fool","kid"].forEach(k=>{if(s[k])roles.push([k,1])});
+  ["alpha","wolfseer","killer","seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","fool","kid"].forEach(k=>{if(s[k])roles.push([k,1])});
   const used=roles.reduce((a,x)=>a+x[1],0);if(n-used>0)roles.push(["villager",n-used]);
   return det("wwroles",{class:"panel"},el("summary",null,"บทบาทในเกมนี้ + ความสามารถ"),
     el("div",{class:"hist"},roles.map(([k,c])=>el("div",{class:"rd"},
@@ -924,21 +935,21 @@ function wwHostView(r,g){
   const n=r.players.length;
   const parts=[el("h2",null,"แผงหัวห้อง")];
   if(r.phase==="lobby"||r.phase==="over"){
-    const evil=s.wolves+(s.wolfseer?1:0)+(s.killer?1:0), maxEvil=Math.max(1,Math.floor((n-1)/2));
-    const specials=["seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","fool","kid","wolfseer","killer"].filter(k=>s[k]).length;
+    const evil=s.wolves+(s.alpha?1:0)+(s.wolfseer?1:0)+(s.killer?1:0), maxEvil=Math.max(1,Math.floor((n-1)/2));
+    const specials=["alpha","drunk","seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","fool","kid","wolfseer","killer"].filter(k=>s[k]).length;
     const toggle=k=>el("button",{class:"vbtn","aria-pressed":String(!!s[k]),onclick:()=>{s[k]=!s[k];render()}},WW[k],el("small",null,(s[k]?"✓ มี · ":"ไม่มี · ")+WW_INFO[k].can[0]));
     const group=(label,keys)=>el("div",{class:"field"},el("label",null,label),el("div",{class:"votes"},keys.map(toggle)));
     parts.push(
       el("div",{class:"field"},el("label",null,"จำนวนหมาป่า"),stepper(s.wolves,1,4,v=>{s.wolves=v;render()})),
-      group("ฝ่ายร้าย (แตะเพื่อเปิด/ปิด)",["wolfseer","killer"]),
-      group("ฝ่ายดี",["seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed"]),
+      group("ฝ่ายร้าย (แตะเพื่อเปิด/ปิด)",["alpha","wolfseer","killer"]),
+      group("ฝ่ายดี",["seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","drunk"]),
       group("ไม่มีฝ่าย",["fool","kid"]),
       el("div",{class:"field"},el("label",null,"เวลากลางคืน"),el("div",{class:"seg"},[[30,"30 วิ"],[45,"45 วิ"],[60,"60 วิ"],[90,"90 วิ"]].map(([k,l])=>el("button",{"aria-pressed":String(s.nightSec===k),onclick:()=>{s.nightSec=k;render()}},l)))),
       el("div",{class:"field"},el("label",null,"เวลาคุยกลางวัน"),el("div",{class:"seg"},[[0,"ไม่จำกัด"],[120,"2 นาที"],[180,"3 นาที"],[300,"5 นาที"]].map(([k,l])=>el("button",{"aria-pressed":String(s.daySec===k),onclick:()=>{s.daySec=k;render()}},l)))),
       el("div",{class:"field"},el("label",null,"คนตายแล้วเปิดเผยบทบาทไหม"),el("div",{class:"seg"},[[true,"เปิดเผย"],[false,"ไม่เปิดจนจบเกม"]].map(([k,l])=>el("button",{"aria-pressed":String((s.reveal!==false)===k),onclick:()=>{s.reveal=k;render()}},l)))),
       el("div",{class:"field"},el("label",null,"ระดับบทลงโทษ"),el("div",{class:"seg"},[["sip","จิบ"],["gulp","อึก"],["shot","ช็อต"]].map(([k,l])=>el("button",{"aria-pressed":String(s.unit===k),onclick:()=>{s.unit=k;render()}},l)))),
       el("p",{class:"small muted"},n<4?`ต้องมีผู้เล่นอย่างน้อย 4 คน (ตอนนี้ ${n})`:`${n} คน · ฝ่ายร้าย ${evil} · บทพิเศษ ${specials} · ชาวบ้าน ${Math.max(0,n-s.wolves-specials)}`),
-      evil>maxEvil&&n>=4?el("p",{class:"err"},`${n} คน มีฝ่ายร้ายได้ไม่เกิน ${maxEvil} คน (หมาป่า + หมาป่าพยากรณ์ + ฆาตกร)`):null,
+      evil>maxEvil&&n>=4?el("p",{class:"err"},`${n} คน มีฝ่ายร้ายได้ไม่เกิน ${maxEvil} คน (หมาป่า + จ่าฝูง + หมาป่าพยากรณ์ + ฆาตกร)`):null,
       s.wolves+specials>n?el("p",{class:"err"},"บทบาทเยอะกว่าจำนวนคน ปิดบางบทบาทก่อน"):null,
       el("button",{class:"btn primary",disabled:S.busy||n<4||s.wolves+specials>n||evil>maxEvil,onclick:()=>act("ww_start",{settings:s})},r.phase==="over"?"เริ่มตาใหม่":"เริ่มเกม"));
   }
@@ -953,11 +964,12 @@ function wwRules(){
     el("ol",{class:"small"},
       el("li",null,"ระบบแจกบทบาทลับ แตะการ์ดเพื่อดูบทบาท ฝ่าย และความสามารถของตัวเอง"),
       el("li",null,"ถ้ามียามหมู่บ้าน กลางคืนจะเริ่มด้วยช่วงยาม: ยามจับขัง 1 คน คนนั้นทำอะไรไม่ได้ทั้งคืน"),
-      el("li",null,"กลางคืน: ใครมีหน้าที่ให้แตะชื่อในรายชื่อผู้เล่นภายในเวลา (หมาป่ากัด, ฆาตกรฆ่า, หมอดูส่อง, หมาป่าพยากรณ์ตรวจ, บอดี้การ์ดคุ้มกัน, ร่างทรงเรียกวิญญาณ, คืนแรกคิวปิดจับคู่)"),
+      el("li",null,"กลางคืน: ใครมีหน้าที่ให้แตะชื่อในรายชื่อผู้เล่นภายในเวลา (หมาป่ากัด, ฆาตกรฆ่า, คนขี้เมาไปกินเหล้า, หมอดูส่อง, หมาป่าพยากรณ์ตรวจ, บอดี้การ์ดคุ้มกัน, ร่างทรงเรียกวิญญาณ, คืนแรกคิวปิดจับคู่)"),
       el("li",null,"ถ้ามีแม่มด จะมีช่วงแม่มดต่อ: เห็นว่าใครโดนกัด ใช้ยาชุบชีวิตหรือยาพิษได้"),
       el("li",null,"เช้า: ระบบประกาศคนตาย นายพรานที่ตายได้ยิงพาใครไปด้วย 1 คน"),
       el("li",null,"กลางวัน: คุยกันแล้วแตะชื่อเพื่อโหวตแขวนคอ คะแนนเท่ากันหรือคนข้ามเยอะ = ไม่มีใครถูกแขวน"),
       el("li",null,"ฝ่ายดีชนะเมื่อฝ่ายร้ายตายหมด ฝ่ายร้ายชนะเมื่อมีจำนวนเท่ากับหรือมากกว่าฝ่ายดี คนบ้าชนะคนเดียวถ้าถูกแขวนคอ เด็กหัวแข็งชนะคนเดียวถ้าเป้าหมายในภารกิจถูกแขวนคอ"),
+      el("li",null,"หมาป่าจ่าฝูงเลือกเหยื่อได้ 2 แต้ม · คนขี้เมาไปค้างบ้านคนอื่นได้ (บ้านคนร้าย = เมาตาย, บ้านคนดีที่โดนกัด = ตายทั้งคู่)"),
       el("li",null,"หัวหน้าหมู่บ้านโหวตได้ 2 แต้ม · ผู้ต้องสาปโดนหมาป่ากัดจะกลายเป็นหมาป่า · ร่างทรงเรียกวิญญาณให้กลับมาพูดตอนเช้าได้"),
       el("li",null,"คนที่ตายแล้วห้ามบอกใบ้ในวง (ถ้ามีผู้สื่อวิญญาณ คุยผ่านห้องคุยกับวิญญาณได้)")),
     pen?el("ul",{class:"small"},Object.values(pen).map(t=>el("li",{class:"drink"},t.replace(/\{S\}/g,"คนที่ถูกแขวน")))):null);
