@@ -614,7 +614,7 @@ function rulesPanel(){
 
 
 /* ======================= แวร์วูฟ ======================= */
-const WW={wolf:"หมาป่า",wolfseer:"หมาป่าพยากรณ์",killer:"ฆาตกร",villager:"ชาวบ้าน",seer:"หมอดู",doctor:"บอดี้การ์ด",witch:"แม่มด",hunter:"นายพราน",cupid:"คิวปิด",medium:"ผู้สื่อวิญญาณ",fool:"คนบ้า"};
+const WW={wolf:"หมาป่า",wolfseer:"หมาป่าพยากรณ์",killer:"ฆาตกร",villager:"ชาวบ้าน",seer:"หมอดู",doctor:"ยามหมู่บ้าน",witch:"แม่มด",hunter:"นายพราน",cupid:"คิวปิด",medium:"ผู้สื่อวิญญาณ",shaman:"ร่างทรง",mayor:"หัวหน้าหมู่บ้าน",cursed:"ผู้ต้องสาป",fool:"คนบ้า",kid:"เด็กหัวแข็ง",guard:"บอดี้การ์ด"};
 const WW_EVIL=["wolf","wolfseer","killer"], WW_PACK=["wolf","wolfseer"];
 const WW_INFO={
   wolf:{team:"evil",when:"ทุกคืน",can:["เลือกเหยื่อร่วมกับหมาป่าตัวอื่น 1 คน (เห็นกันว่าแต่ละตัวเลือกใคร)","รู้ว่าใครเป็นหมาป่า/หมาป่าพยากรณ์บ้าง","กลางวันแกล้งทำเป็นคนดี"],win:"ฝ่ายร้ายมีจำนวนเท่ากับหรือมากกว่าฝ่ายดี"},
@@ -622,16 +622,21 @@ const WW_INFO={
   killer:{team:"evil",when:"ทุกคืน",can:["ฆ่าได้ 1 คนทุกคืน แยกจากหมาป่า","ไม่รู้ว่าใครเป็นหมาป่า และหมาป่าก็ไม่รู้ว่าคุณเป็นใคร","บอดี้การ์ดคุ้มกันเป้าหมายของคุณได้"],win:"ฝ่ายร้ายมีจำนวนเท่ากับหรือมากกว่าฝ่ายดี"},
   villager:{team:"good",when:"-",can:["ไม่มีพลังพิเศษ","สังเกตคำพูดเพื่อน แล้วโหวตแขวนคนร้ายตอนกลางวัน"],win:"ฝ่ายร้ายตายหมด"},
   seer:{team:"good",when:"ทุกคืน",can:["ส่องได้ 1 คนว่าเป็น \"ดี\" หรือ \"ร้าย\"","ไม่เห็นชื่อบทบาท เห็นแค่ฝ่าย","ระวัง: คนบ้าจะขึ้นว่า \"ดี\""],win:"ฝ่ายร้ายตายหมด"},
-  doctor:{team:"good",when:"ทุกคืน",can:["คุ้มกัน 1 คนไม่ให้ถูกฆ่าตอนกลางคืน (กันได้ทั้งหมาป่าและฆาตกร)","คุ้มกันตัวเองได้","ห้ามคุ้มกันคนเดิมสองคืนติดกัน"],win:"ฝ่ายร้ายตายหมด"},
+  doctor:{team:"good",when:"ทุกคืน (ก่อนคนอื่น)",can:["จับขังได้ 1 คนทุกคืน","คนที่ถูกขังทำอะไรไม่ได้เลยทั้งคืน (หมาป่ากัดไม่ได้ หมอดูส่องไม่ได้ ฯลฯ)","ห้ามขังคนเดิมสองคืนติดกัน และขังตัวเองไม่ได้"],win:"ฝ่ายร้ายตายหมด"},
   witch:{team:"good",when:"ทุกคืน (หลังหมาป่าเลือกเหยื่อ)",can:["เห็นว่าคืนนี้หมาป่ากัดใคร","ยาชุบชีวิต 1 ขวด: ช่วยคนที่โดนกัด","ยาพิษ 1 ขวด: ฆ่าใครก็ได้ 1 คน","แต่ละขวดใช้ได้ครั้งเดียวทั้งเกม"],win:"ฝ่ายร้ายตายหมด"},
   hunter:{team:"good",when:"ตอนตาย",can:["ถ้าคุณตาย (ไม่ว่าทางไหน) จะได้ยิงพาใครตายตามไปด้วย 1 คน"],win:"ฝ่ายร้ายตายหมด"},
   cupid:{team:"good",when:"คืนแรกคืนเดียว",can:["เลือก 2 คนให้เป็นคู่รัก (เลือกตัวเองได้)","ถ้าคู่รักคนหนึ่งตาย อีกคนตายตาม","คู่รักต่างฝ่ายชนะเองได้ ถ้ารอดกันแค่สองคน"],win:"ฝ่ายร้ายตายหมด"},
   medium:{team:"good",when:"ตลอดเกม",can:["คุยกับคนที่ตายไปแล้วได้ในห้องคุยกับวิญญาณ","คนตายจะเห็นคุณเป็น \"ผู้สื่อวิญญาณ\" ไม่เห็นชื่อ","เอาเบาะแสจากวิญญาณมาช่วยฝ่ายดี"],win:"ฝ่ายร้ายตายหมด"},
+  guard:{team:"good",when:"ทุกคืน",can:["คุ้มกัน 1 คนไม่ให้ตายคืนนี้ (กันได้ทั้งหมาป่ากัดและฆาตกร)","คุ้มกันตัวเองได้ ห้ามคุ้มกันคนเดิมสองคืนติดกัน","กันยาพิษของแม่มดไม่ได้"],win:"ฝ่ายร้ายตายหมด"},
+  shaman:{team:"good",when:"ทุกคืน",can:["เลือกคนที่ตายไปแล้ว 1 คน","เช้าวันรุ่งขึ้น วิญญาณคนนั้นได้พิมพ์ข้อความถึงทุกคน 1 ครั้ง","ใช้ได้เมื่อมีคนตายแล้วอย่างน้อย 1 คน"],win:"ฝ่ายร้ายตายหมด"},
+  mayor:{team:"good",when:"กลางวัน",can:["คะแนนโหวตแขวนคอของคุณนับเป็น 2 แต้ม (กดข้ามก็นับ 2)","ไม่มีใครรู้ว่าคุณเป็นหัวหน้าหมู่บ้าน ยกเว้นคุณบอกเอง"],win:"ฝ่ายร้ายตายหมด"},
+  cursed:{team:"good",when:"-",can:["อยู่ฝ่ายดี หมอดูส่องจะขึ้นว่า \"ดี\"","ถ้าโดนหมาป่ากัด คุณจะไม่ตาย แต่กลายเป็นหมาป่าอีกตัวทันที (เป็นความลับ)","ถ้าตายด้วยวิธีอื่น ตายตามปกติ"],win:"ตอนเป็นฝ่ายดี: ฝ่ายร้ายตายหมด · ถ้ากลายเป็นหมาป่า: ฝ่ายร้ายชนะ"},
+  kid:{team:"neutral",when:"กลางวัน",can:["เกมสุ่มภารกิจให้ 1 คน: ทำยังไงก็ได้ให้ทุกคนโหวตแขวนคนนั้น","หมอดูส่องจะขึ้นว่า \"ดี\"","ถ้าคนในภารกิจตายด้วยวิธีอื่น (เช่นโดนหมาป่ากัด) คุณจะกลายเป็นชาวบ้านธรรมดาฝ่ายดี"],win:"คนในภารกิจถูกแขวนคอ (ชนะคนเดียวทันที)"},
   fool:{team:"neutral",when:"กลางวัน",can:["ไม่มีพลังพิเศษ หมอดูส่องจะขึ้นว่า \"ดี\"","ทำตัวน่าสงสัยให้คนโหวตแขวนคุณ"],win:"ถูกโหวตแขวนคอเมื่อไหร่ ชนะคนเดียวทันที"}
 };
 const WW_TEAM={evil:"ฝ่ายร้าย",good:"ฝ่ายดี",neutral:"ไม่มีฝ่าย"};
 const WW_CAUSE={night:"ตายเมื่อคืน",love:"ตายตามคนรัก",lynch:"ถูกแขวนคอ",shot:"โดนนายพรานยิง"};
-const WW_ORDER=["wolf","wolfseer","killer","seer","doctor","witch","hunter","cupid","medium","fool","villager"];
+const WW_ORDER=["wolf","wolfseer","killer","seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","fool","kid","villager"];
 function wwTeamOf(role){return (WW_INFO[role]||{}).team||"good"}
 function wwRoleTag(role){return role?el("span",{class:"tagr "+(wwTeamOf(role)==="evil"?"spy":wwTeamOf(role)==="neutral"?"white":"civ")},WW[role]):null}
 function wwLeft(){const g=S.room&&S.room.game;if(!g||!g.deadline)return 0;return Math.max(0,Math.ceil((g.deadline-now())/1000))}
@@ -641,13 +646,14 @@ function wwTimer(label){
   return el("div",{class:"timer"+(l<=5?" low":""),id:"wwbox"},el("span",{class:"sec",id:"wwcd"},l),el("span",{class:"small"},label));
 }
 function wwDeathsText(ds){return ds.map(d=>`${d.name}${d.role?` (${WW[d.role]})`:""} ${WW_CAUSE[d.cause]||""}`).join(" · ")}
-function wwWinTitle(w){return w==="village"?"ฝ่ายดีชนะ!":w==="wolf"?"ฝ่ายร้ายชนะ!":w==="lovers"?"คู่รักชนะ!":w==="fool"?"คนบ้าชนะ!":"จบตานี้แล้ว"}
+function wwWinTitle(w){return w==="village"?"ฝ่ายดีชนะ!":w==="wolf"?"ฝ่ายร้ายชนะ!":w==="lovers"?"คู่รักชนะ!":w==="fool"?"คนบ้าชนะ!":w==="kid"?"เด็กหัวแข็งชนะ!":"จบตานี้แล้ว"}
 function wwIWon(v,w){
   const me=v.me;if(!me)return null;const my=(v.players.find(p=>p.id===me.id)||{}).role;if(!my||!w||w==="none")return null;
   if(w==="fool")return v.game.foolWin===me.id;
+  if(w==="kid")return v.game.kidWin===me.id;
   if(w==="lovers")return !!(v.game.lovers&&v.game.lovers.includes(me.id));
   if(w==="wolf")return WW_EVIL.includes(my);
-  return !WW_EVIL.includes(my)&&my!=="fool";
+  return !WW_EVIL.includes(my)&&my!=="fool"&&my!=="kid";
 }
 
 /* ---------- เหตุการณ์ + ป๊อปอัพ ---------- */
@@ -659,9 +665,10 @@ function wwEventView(ev){
     const tally=(ev.tally||[]).map(t=>`${t.name} ${t.n}`).concat(ev.skips?[`ข้าม ${ev.skips}`]:[]).join(" · ");
     if(ev.none) return box("",`ผลโหวตวันที่ ${ev.day}`,el("p",null,ev.tie?"คะแนนเท่ากัน ไม่มีใครถูกแขวน":"ไม่มีใครถูกแขวน (คนข้ามเยอะกว่าคะแนนโหวต)"),tally?el("p",{class:"small muted"},"คะแนน: "+tally):null);
     const d=ev.deaths[0]||{};
-    return box(ev.fool?"white":WW_EVIL.includes(d.role)?"civ":"spy",ev.fool?`แขวนคนบ้า! คนบ้าชนะ`:`ผลโหวตวันที่ ${ev.day}`,el("p",null,wwDeathsText(ev.deaths)),ev.msg?el("p",{class:"drink"},ev.msg):null,
+    return box(ev.fool||ev.kid?"white":WW_EVIL.includes(d.role)?"civ":"spy",ev.fool?`แขวนคนบ้า! คนบ้าชนะ`:ev.kid?`ภารกิจสำเร็จ! ${ev.kid} (เด็กหัวแข็ง) ชนะ`:`ผลโหวตวันที่ ${ev.day}`,el("p",null,wwDeathsText(ev.deaths)),ev.msg?el("p",{class:"drink"},ev.msg):null,
       ev.voters&&ev.voters.length?el("p",{class:"small"},"คนที่โหวต: "+ev.voters.join(", ")):null,tally?el("p",{class:"small muted"},"คะแนน: "+tally):null);
   }
+  if(ev.kind==="ghost") return box("white",`วิญญาณของ ${ev.name} พูดว่า`,el("p",null,`“${ev.text}”`));
   if(ev.kind==="shot") return box("white",`นายพราน ${ev.shooter} ลั่นไก`,el("p",null,ev.deaths.length?wwDeathsText(ev.deaths):"ไม่ยิงใคร"),ev.msg?el("p",{class:"drink"},ev.msg):null);
   return null;
 }
@@ -677,12 +684,14 @@ function wwPopup(v,prevKey){
     if(ev.kind==="dawn"){cls=ev.deaths.length?"bad":"good";items.push(el("div",{class:"big"},`เช้าวันที่ ${ev.night}`),el("p",null,ev.deaths.length?wwDeathsText(ev.deaths):"เมื่อคืนไม่มีใครตาย"),ev.msg?el("p",{class:"drink"},ev.msg):null)}
     else if(ev.kind==="lynch"){
       if(ev.none) items.push(el("div",{class:"big"},"ไม่มีใครถูกแขวน"),el("p",{class:"small muted"},ev.tie?"คะแนนเท่ากัน":"คนข้ามเยอะกว่าคะแนนโหวต"));
-      else{const d=ev.deaths[0]||{};const evil=WW_EVIL.includes(d.role);cls=ev.fool?"white":evil?"good":d.role?"bad":"";
-        items.push(el("div",{class:"big"},ev.fool?"แขวนคนบ้า!":evil?"จับคนร้ายได้!":d.role?"แขวนผิดตัว!":"ถูกแขวนคอ"),el("p",null,wwDeathsText(ev.deaths)),ev.msg?el("p",{class:"drink"},ev.msg):null);
+      else{const d=ev.deaths[0]||{};const evil=WW_EVIL.includes(d.role);cls=ev.fool||ev.kid?"white":evil?"good":d.role?"bad":"";
+        items.push(el("div",{class:"big"},ev.fool?"แขวนคนบ้า!":ev.kid?`ภารกิจของ ${ev.kid} สำเร็จ!`:evil?"จับคนร้ายได้!":d.role?"แขวนผิดตัว!":"ถูกแขวนคอ"),el("p",null,wwDeathsText(ev.deaths)),ev.msg?el("p",{class:"drink"},ev.msg):null);
         const voted=v.me&&(ev.voters||[]).includes(v.me.name);
-        if(voted&&d.role&&!ev.fool) items.push(el("span",{class:"me",style:evil?"color:var(--green)":"color:var(--red)"},evil?"คุณโหวตถูก!":"คุณโหวตผิดตัว"));
+        if(ev.kid) items.push(el("p",{class:"small"},`${ev.kid} คือเด็กหัวแข็ง และ ${d.name} คือเป้าหมายในภารกิจ`));
+        if(voted&&d.role&&!ev.fool&&!ev.kid) items.push(el("span",{class:"me",style:evil?"color:var(--green)":"color:var(--red)"},evil?"คุณโหวตถูก!":"คุณโหวตผิดตัว"));
         if(voted&&ev.fool) items.push(el("span",{class:"me",style:"color:var(--red)"},"คุณโดนคนบ้าหลอก!"));}
     }
+    else if(ev.kind==="ghost"){cls=cls||"white";items.push(el("div",{class:"big",style:"font-size:20px"},`วิญญาณของ ${ev.name} กลับมาพูด`),el("p",null,`“${ev.text}”`))}
     else if(ev.kind==="shot"){cls=cls||"white";items.push(el("div",{class:"big"},`นายพราน ${ev.shooter} ยิง!`),el("p",null,ev.deaths.length?wwDeathsText(ev.deaths):"ไม่ยิงใคร"),ev.msg?el("p",{class:"drink"},ev.msg):null)}
     else if(ev.kind==="over"){cls="win";items.push(el("div",{class:"big"},wwWinTitle(ev.winner)),ev.msg?el("p",{class:"drink"},ev.msg):null);
       const won=wwIWon(v,ev.winner);if(won!==null)items.push(el("span",{class:"me",style:won?"color:var(--green)":"color:var(--red)"},won?"คุณชนะ!":"คุณแพ้"))}
@@ -705,7 +714,11 @@ function wwRoomView(){
     el("p",{class:"small muted"},wwStatus())));
   if(!me&&!r.isHost) parts.push(el("div",{class:"panel"},el("p",{class:"err"},"คุณไม่ได้อยู่ในห้องนี้แล้ว"),el("button",{class:"btn",onclick:leave},"กลับหน้าแรก")));
   if(me&&me.inGame&&g) parts.push(wwCard(me,g));
-  if(g&&r.phase==="day"){const ev=g.log[g.log.length-1];if(ev)parts.push(wwEventView(ev))}
+  if(g&&r.phase==="day"){let i=g.log.length-1;while(i>0&&g.log[i].kind!=="dawn")i--;g.log.slice(Math.max(0,i)).forEach(ev=>{const v=wwEventView(ev);if(v)parts.push(v)})}
+  if(g&&r.phase==="day"&&me&&me.canSpeak) parts.push(el("div",{class:"panel",style:"border-color:var(--blue)"},
+    el("h2",null,"ร่างทรงเรียกวิญญาณของคุณ"),el("p",{class:"small"},"คุณพิมพ์ข้อความถึงทุกคนได้ 1 ครั้ง (ส่งแล้วแก้ไม่ได้)"),
+    el("div",{class:"row"},el("input",{type:"text",id:"ghostin",maxlength:"150",value:S.ghostDraft||"",placeholder:"อยากบอกอะไรเพื่อน…",style:"flex:3 1 200px",oninput:e=>{S.ghostDraft=e.target.value}}),
+      el("button",{class:"btn primary",style:"flex:1 0 auto",disabled:S.busy,onclick:()=>{const t=(S.ghostDraft||"").trim();if(!t)return;S.ghostDraft="";act("ww_ghost",{text:t})}},"ส่ง"))));
   if(g&&r.phase==="over") parts.push(wwOverView(r,g));
   if(g&&r.phase!=="lobby") parts.push(wwMainPanel(r,g,me));
   if(g&&g.chat) parts.push(wwChatView(r,g,me));
@@ -739,6 +752,9 @@ function wwCard(me,g){
   const extra=[];
   if(me.pack&&me.pack.length) extra.push(el("p",{class:"small",style:"color:var(--red)"},"ฝูงหมาป่า: "+me.pack.map(p=>`${pName(p.id)} (${WW[p.role]})`).join(", ")));
   if(me.lover) extra.push(el("p",{class:"small",style:"color:#ff9ec7"},"คู่รักของคุณ: "+pName(me.lover)+" (ถ้าเขาตาย คุณตายตาม)"));
+  if(me.mission) extra.push(el("p",{class:"small",style:"color:var(--blue)"},me.mission.active?["ภารกิจของคุณ: ทำให้ทุกคนโหวตแขวน ",el("b",null,pName(me.mission.target))]:"ภารกิจล้มเหลว"));
+  if(me.wasKid) extra.push(el("p",{class:"small",style:"color:var(--blue)"},"เป้าหมายในภารกิจตายไปแล้ว ตอนนี้คุณเป็นชาวบ้านธรรมดา อยู่ฝ่ายดี"));
+  if(me.cursedTurned) extra.push(el("p",{class:"small",style:"color:var(--red)"},"คุณถูกหมาป่ากัดเมื่อคืน คำสาปทำงาน! ตอนนี้คุณกลายเป็นหมาป่าแล้ว"));
   if(role==="witch"&&me.potions) extra.push(el("p",{class:"small"},`ยาชุบชีวิต: ${me.potions.heal?"เหลือ 1":"ใช้แล้ว"} · ยาพิษ: ${me.potions.poison?"เหลือ 1":"ใช้แล้ว"}`));
   if(me.seerLog&&me.seerLog.length) extra.push(el("div",{class:"small"},el("b",null,"ผลส่องของคุณ"),el("ul",null,me.seerLog.map(s=>el("li",null,`คืนที่ ${s.night}: ${s.name} = `,el("b",{style:s.evil?"color:var(--red)":"color:var(--green)"},s.evil?"ร้าย":"ดี"))))));
   if(me.wseerLog&&me.wseerLog.length) extra.push(el("div",{class:"small"},el("b",null,"ผลตรวจของคุณ"),el("ul",null,me.wseerLog.map(s=>el("li",null,`คืนที่ ${s.night}: ${s.name} = `,el("b",null,WW[s.role]))))));
@@ -767,6 +783,13 @@ function wwMode(r,g,me){
     return {title:"นายพรานกำลังเล็งปืน",hint:`${pName(g.hunterId)} คือนายพราน! รอเขาเลือกว่าจะยิงใคร…`};
   }
   // กลางคืน
+  if(g.step==="jail"){
+    if(mine==="doctor"){const s=wwSel("jail");return {title:`คืนที่ ${g.night} · ยามหมู่บ้าน: จับขัง`,hint:"แตะชื่อ คนที่จะจับขังคืนนี้ แล้วกดยืนยัน คนที่ถูกขังจะทำอะไรไม่ได้ทั้งคืน (ห้ามคนเดิมสองคืนติด)",
+      ok:p=>alive(p)&&p.id!==me.id&&p.id!==me.lastJail,sel:s,note:p=>p.id===me.lastJail?"ขังเมื่อคืนแล้ว":null,pick:id=>{wwSel("jail",s===id?null:id);render()},
+      extra:[el("button",{class:"btn primary",disabled:!s||S.busy,onclick:()=>{wwSel("jail",null);act("ww_act",{target:s})}},s?`ขัง ${pName(s)}`:"เลือกคนก่อน"),el("button",{class:"btn sm",onclick:()=>act("ww_act",{target:"SKIP"})},"ไม่ขังใคร")]}}
+    return {title:`คืนที่ ${g.night}`,hint:"ยามหมู่บ้านกำลังออกตรวจ… รอสักครู่"};
+  }
+  if(me&&me.jailed) return {title:`คืนที่ ${g.night} · คุณถูกจับขัง!`,hint:"ยามหมู่บ้านจับคุณขังไว้ คืนนี้คุณทำอะไรไม่ได้เลย"};
   if(g.step==="witch"){
     if(mine==="witch"){
       const pot=me.potions||{},s=wwSel("poison");
@@ -803,10 +826,17 @@ function wwMode(r,g,me){
     return {title:`${title} · หมอดู: ส่องดีหรือร้าย`,hint:"แตะชื่อ คนที่จะส่อง แล้วกดยืนยัน (จะเห็นแค่ว่า ดี หรือ ร้าย)",ok:p=>alive(p)&&p.id!==me.id,sel:s,pick:id=>{wwSel("seer",s===id?null:id);render()},
       extra:[el("button",{class:"btn primary",disabled:!s||S.busy,onclick:()=>{wwSel("seer",null);act("ww_act",{target:s})}},s?`ส่อง ${pName(s)}`:"เลือกคนก่อน"),el("button",{class:"btn sm",onclick:()=>act("ww_act",{target:"SKIP"})},"ไม่ส่องคืนนี้")]};
   }
-  if(mine==="doctor") return {title:`${title} · บอดี้การ์ด: คุ้มกัน`,hint:"แตะชื่อ คนที่จะคุ้มกันคืนนี้ (คุ้มกันตัวเองได้ ห้ามคนเดิมสองคืนติด) เปลี่ยนได้จนหมดเวลา",
+  if(mine==="guard") return {title:`${title} · บอดี้การ์ด: คุ้มกัน`,hint:"แตะชื่อ คนที่จะคุ้มกันคืนนี้ (คุ้มกันตัวเองได้ ห้ามคนเดิมสองคืนติด) เปลี่ยนได้จนหมดเวลา",
     ok:p=>alive(p)&&p.id!==me.lastProtect,sel:g.myAct,note:p=>p.id===me.lastProtect?"คุ้มกันเมื่อคืนแล้ว":null,
     pick:id=>fast("ww_act",{target:id},rm=>{rm.game.myAct=id;rm.game.myDone=true}),
     extra:[el("button",{class:"btn sm"+(g.myAct==="SKIP"?" primary":""),onclick:()=>fast("ww_act",{target:"SKIP"},rm=>{rm.game.myAct="SKIP";rm.game.myDone=true})},g.myAct==="SKIP"?"✓ ไม่คุ้มกันใคร":"ไม่คุ้มกันใคร")]};
+  if(mine==="shaman"){
+    const dead=r.players.filter(p=>p.inGame&&!p.alive);
+    if(!dead.length) return {title:`${title} · ร่างทรง`,hint:"ยังไม่มีใครตาย คืนนี้ยังเรียกวิญญาณไม่ได้"};
+    return {title:`${title} · ร่างทรง: เรียกวิญญาณ`,hint:"แตะชื่อ คนที่ตายแล้ว ที่จะให้กลับมาพูดตอนเช้า 1 ครั้ง เปลี่ยนได้จนหมดเวลา",
+      ok:p=>p.inGame&&!p.alive,sel:g.myAct,pick:id=>fast("ww_act",{target:id},rm=>{rm.game.myAct=id;rm.game.myDone=true}),
+      extra:[el("button",{class:"btn sm"+(g.myAct==="SKIP"?" primary":""),onclick:()=>fast("ww_act",{target:"SKIP"},rm=>{rm.game.myAct="SKIP";rm.game.myDone=true})},g.myAct==="SKIP"?"✓ ไม่เรียกใคร":"ไม่เรียกวิญญาณคืนนี้")]};
+  }
   if(mine==="killer") return {title:`${title} · ฆาตกร: เลือกเป้าหมาย`,hint:"แตะชื่อ คนที่จะฆ่าคืนนี้ เปลี่ยนได้จนหมดเวลา",
     ok:p=>alive(p)&&p.id!==me.id,sel:g.myAct,pick:id=>fast("ww_act",{target:id},rm=>{rm.game.myAct=id;rm.game.myDone=true}),
     extra:[el("button",{class:"btn sm"+(g.myAct==="SKIP"?" primary":""),onclick:()=>fast("ww_act",{target:"SKIP"},rm=>{rm.game.myAct="SKIP";rm.game.myDone=true})},g.myAct==="SKIP"?"✓ ไม่ฆ่าใคร":"ไม่ฆ่าใครคืนนี้")]};
@@ -833,7 +863,7 @@ function wwMainPanel(r,g,me){
   const list=r.players.filter(p=>p.inGame).sort((a,b)=>a.seat-b.seat);
   const voted=new Set(g.voted||[]), sel=Array.isArray(m.sel)?m.sel:[m.sel];
   const packIds=me&&me.pack?me.pack.map(p=>p.id):[];
-  const label=r.phase==="day"?"วินาที · หมดเวลาแล้วนับคะแนนทันที":r.phase==="hunter"?"วินาที":g.step==="witch"?"วินาที · ช่วงแม่มด":"วินาที · คนที่มีหน้าที่กลางคืน เลือกให้ทันเวลา";
+  const label=r.phase==="day"?"วินาที · หมดเวลาแล้วนับคะแนนทันที":r.phase==="hunter"?"วินาที":g.step==="witch"?"วินาที · ช่วงแม่มด":g.step==="jail"?"วินาที · ช่วงยามหมู่บ้าน":"วินาที · คนที่มีหน้าที่กลางคืน เลือกให้ทันเวลา";
   return el("div",{class:"panel"},
     el("h2",null,m.title),
     over?null:wwTimer(label),
@@ -844,6 +874,7 @@ function wwMainPanel(r,g,me){
       if(me&&p.id===me.id) tags.push("คุณ");
       if(packIds.includes(p.id)) tags.push("ฝูงหมาป่า");
       if(me&&me.lover===p.id) tags.push("คู่รัก");
+      if(me&&me.mission&&me.mission.active&&me.mission.target===p.id) tags.push("เป้าหมายภารกิจ");
       const note=m.note&&m.note(p);if(note) tags.push(note);
       const right=p.role?wwRoleTag(p.role):!p.alive?el("span",{class:"tagr"},"ตายแล้ว"):on?el("span",{class:"tagr ok"},"✓ เลือก"):r.phase==="day"&&voted.has(p.id)?el("span",{class:"tagr ok"},"โหวตแล้ว"):null;
       return el("li",{class:(p.alive?"":"out ")+(can?"pick ":"")+(on?"sel ":"")+(me&&p.id===me.id?"mine":""),
@@ -875,12 +906,13 @@ function wwOverView(r,g){
   return el("div",{class:"result win"},el("span",{class:"t"},wwWinTitle(g.winner)),g.winMsg?el("p",{class:"drink"},g.winMsg):null,
     WW_ORDER.filter(k=>by(k)).map(k=>el("p",{class:"small"},`${WW[k]}: ${by(k)}`)),
     g.lovers?el("p",{class:"small"},"คู่รัก: "+g.lovers.map(pName).join(" ❤ ")):null,
+    g.kidInfo?el("p",{class:"small"},`ภารกิจเด็กหัวแข็ง (${pName(g.kidInfo.id)}): แขวน ${pName(g.kidInfo.target)}${g.kidInfo.active?"":" (ล้มเหลว)"}`):null,
     el("p",{class:"small muted"},r.isHost?"ตั้งค่าแล้วกด \"เริ่มตาใหม่\" ด้านล่าง":"รอหัวห้องเริ่มตาใหม่"));
 }
 function wwRolesInGame(r){
   const s=r.settings||{};const n=r.players.filter(p=>p.inGame).length||r.players.length;
   const roles=[];if(s.wolves)roles.push(["wolf",s.wolves]);
-  ["wolfseer","killer","seer","doctor","witch","hunter","cupid","medium","fool"].forEach(k=>{if(s[k])roles.push([k,1])});
+  ["wolfseer","killer","seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","fool","kid"].forEach(k=>{if(s[k])roles.push([k,1])});
   const used=roles.reduce((a,x)=>a+x[1],0);if(n-used>0)roles.push(["villager",n-used]);
   return det("wwroles",{class:"panel"},el("summary",null,"บทบาทในเกมนี้ + ความสามารถ"),
     el("div",{class:"hist"},roles.map(([k,c])=>el("div",{class:"rd"},
@@ -893,14 +925,14 @@ function wwHostView(r,g){
   const parts=[el("h2",null,"แผงหัวห้อง")];
   if(r.phase==="lobby"||r.phase==="over"){
     const evil=s.wolves+(s.wolfseer?1:0)+(s.killer?1:0), maxEvil=Math.max(1,Math.floor((n-1)/2));
-    const specials=["seer","doctor","witch","hunter","cupid","medium","fool","wolfseer","killer"].filter(k=>s[k]).length;
+    const specials=["seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed","fool","kid","wolfseer","killer"].filter(k=>s[k]).length;
     const toggle=k=>el("button",{class:"vbtn","aria-pressed":String(!!s[k]),onclick:()=>{s[k]=!s[k];render()}},WW[k],el("small",null,(s[k]?"✓ มี · ":"ไม่มี · ")+WW_INFO[k].can[0]));
     const group=(label,keys)=>el("div",{class:"field"},el("label",null,label),el("div",{class:"votes"},keys.map(toggle)));
     parts.push(
       el("div",{class:"field"},el("label",null,"จำนวนหมาป่า"),stepper(s.wolves,1,4,v=>{s.wolves=v;render()})),
       group("ฝ่ายร้าย (แตะเพื่อเปิด/ปิด)",["wolfseer","killer"]),
-      group("ฝ่ายดี",["seer","doctor","witch","hunter","cupid","medium"]),
-      group("ไม่มีฝ่าย",["fool"]),
+      group("ฝ่ายดี",["seer","doctor","guard","witch","hunter","cupid","medium","shaman","mayor","cursed"]),
+      group("ไม่มีฝ่าย",["fool","kid"]),
       el("div",{class:"field"},el("label",null,"เวลากลางคืน"),el("div",{class:"seg"},[[30,"30 วิ"],[45,"45 วิ"],[60,"60 วิ"],[90,"90 วิ"]].map(([k,l])=>el("button",{"aria-pressed":String(s.nightSec===k),onclick:()=>{s.nightSec=k;render()}},l)))),
       el("div",{class:"field"},el("label",null,"เวลาคุยกลางวัน"),el("div",{class:"seg"},[[0,"ไม่จำกัด"],[120,"2 นาที"],[180,"3 นาที"],[300,"5 นาที"]].map(([k,l])=>el("button",{"aria-pressed":String(s.daySec===k),onclick:()=>{s.daySec=k;render()}},l)))),
       el("div",{class:"field"},el("label",null,"คนตายแล้วเปิดเผยบทบาทไหม"),el("div",{class:"seg"},[[true,"เปิดเผย"],[false,"ไม่เปิดจนจบเกม"]].map(([k,l])=>el("button",{"aria-pressed":String((s.reveal!==false)===k),onclick:()=>{s.reveal=k;render()}},l)))),
@@ -920,11 +952,13 @@ function wwRules(){
   return det("wwrules",{class:"panel"},el("summary",null,"กติกาแวร์วูฟ"),
     el("ol",{class:"small"},
       el("li",null,"ระบบแจกบทบาทลับ แตะการ์ดเพื่อดูบทบาท ฝ่าย และความสามารถของตัวเอง"),
-      el("li",null,"กลางคืน: ใครมีหน้าที่ให้แตะชื่อในรายชื่อผู้เล่นภายในเวลา (หมาป่ากัด, ฆาตกรฆ่า, หมอดูส่อง, หมาป่าพยากรณ์ตรวจ, บอดี้การ์ดคุ้มกัน, คืนแรกคิวปิดจับคู่)"),
+      el("li",null,"ถ้ามียามหมู่บ้าน กลางคืนจะเริ่มด้วยช่วงยาม: ยามจับขัง 1 คน คนนั้นทำอะไรไม่ได้ทั้งคืน"),
+      el("li",null,"กลางคืน: ใครมีหน้าที่ให้แตะชื่อในรายชื่อผู้เล่นภายในเวลา (หมาป่ากัด, ฆาตกรฆ่า, หมอดูส่อง, หมาป่าพยากรณ์ตรวจ, บอดี้การ์ดคุ้มกัน, ร่างทรงเรียกวิญญาณ, คืนแรกคิวปิดจับคู่)"),
       el("li",null,"ถ้ามีแม่มด จะมีช่วงแม่มดต่อ: เห็นว่าใครโดนกัด ใช้ยาชุบชีวิตหรือยาพิษได้"),
       el("li",null,"เช้า: ระบบประกาศคนตาย นายพรานที่ตายได้ยิงพาใครไปด้วย 1 คน"),
       el("li",null,"กลางวัน: คุยกันแล้วแตะชื่อเพื่อโหวตแขวนคอ คะแนนเท่ากันหรือคนข้ามเยอะ = ไม่มีใครถูกแขวน"),
-      el("li",null,"ฝ่ายดีชนะเมื่อฝ่ายร้ายตายหมด ฝ่ายร้ายชนะเมื่อมีจำนวนเท่ากับหรือมากกว่าฝ่ายดี คนบ้าชนะคนเดียวถ้าถูกแขวนคอ"),
+      el("li",null,"ฝ่ายดีชนะเมื่อฝ่ายร้ายตายหมด ฝ่ายร้ายชนะเมื่อมีจำนวนเท่ากับหรือมากกว่าฝ่ายดี คนบ้าชนะคนเดียวถ้าถูกแขวนคอ เด็กหัวแข็งชนะคนเดียวถ้าเป้าหมายในภารกิจถูกแขวนคอ"),
+      el("li",null,"หัวหน้าหมู่บ้านโหวตได้ 2 แต้ม · ผู้ต้องสาปโดนหมาป่ากัดจะกลายเป็นหมาป่า · ร่างทรงเรียกวิญญาณให้กลับมาพูดตอนเช้าได้"),
       el("li",null,"คนที่ตายแล้วห้ามบอกใบ้ในวง (ถ้ามีผู้สื่อวิญญาณ คุยผ่านห้องคุยกับวิญญาณได้)")),
     pen?el("ul",{class:"small"},Object.values(pen).map(t=>el("li",{class:"drink"},t.replace(/\{S\}/g,"คนที่ถูกแขวน")))):null);
 }
